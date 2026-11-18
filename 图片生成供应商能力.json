@@ -1,0 +1,1504 @@
+{
+  "defaultPreset": "65535-native",
+  "presets": {
+    "openai-compatible": {
+      "label": "通用 OpenAI 兼容",
+      "baseUrl": "",
+      "models": {
+        "image": [
+          "gpt-image-2",
+          "gpt-image-1"
+        ],
+        "chat": [
+          "gpt-5.5",
+          "gpt-5.4-mini"
+        ],
+        "video": [
+          "grok-imagine-video",
+          "grok-imagine-video-1.5-preview",
+          "veo-omni-flash",
+          "veo-omni-flash-edit",
+          "veo-omni-3-1",
+          "seedance-2.0-native",
+          "seedance-2.0-fast-native",
+          "seedance-2.5-native"
+        ]
+      },
+      "capabilities": {
+        "modelListEndpoint": "/models",
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/edits"
+        },
+        "maxReferences": 5,
+        "referenceFieldStrategy": "repeat-image",
+        "negativePrompt": "compat",
+        "customModel": true,
+        "maxPixels": 8294400,
+        "minSide": 256,
+        "multipleOf": 16,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "quality": true,
+          "background": true,
+          "outputFormat": true
+        },
+        "qualityOptions": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "backgroundOptions": [
+          "auto",
+          "transparent",
+          "opaque"
+        ],
+        "outputFormatOptions": [
+          "png",
+          "jpeg",
+          "webp"
+        ],
+        "video": {
+          "models": [
+            "grok-imagine-video",
+            "grok-imagine-video-1.5-preview",
+            "veo-omni-flash",
+            "veo-omni-flash-edit",
+            "veo-omni-3-1",
+            "seedance-2.0-native",
+            "seedance-2.0-fast-native",
+            "seedance-2.5-native"
+          ],
+          "endpoints": {
+            "create": "/videos",
+            "status": "/videos/{id}",
+            "content": "/videos/{id}/content"
+          },
+          "requestFormat": "json",
+          "maxReferences": 4,
+          "referenceField": "image",
+          "multiReferenceField": "images",
+          "defaultSeconds": "6",
+          "seconds": [
+            "1",
+            "2",
+            "4",
+            "6",
+            "8",
+            "10",
+            "12",
+            "15"
+          ],
+          "defaultAspectRatio": "16:9",
+          "aspectRatios": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "2:1",
+            "1:2",
+            "19.5:9",
+            "9:19.5",
+            "20:9",
+            "9:20"
+          ],
+          "defaultResolution": "720P",
+          "resolutions": [
+            "480P",
+            "720P"
+          ],
+          "negativePrompt": false,
+          "customModel": true
+        }
+      }
+    },
+    "botcf": {
+      "label": "botcf 兼容预设",
+      "baseUrl": "https://botcf.com/v1",
+      "models": {
+        "image": [
+          "gpt-image-2",
+          "gpt-image-2-1k",
+          "gpt-image-2-2k",
+          "gpt-image-2-4k",
+          "gpt-image-2-4k超分",
+          "gpt-image-2-codex",
+          "gpt-image-1"
+        ],
+        "chat": [
+          "gpt-5.5",
+          "gpt-5.6-sol",
+          "gpt-5.6-luna",
+          "gpt-5.6-terra",
+          "gpt-5.4",
+          "gpt-5.4-mini"
+        ],
+        "video": [
+          "grok-imagine-video",
+          "grok-imagine-video-1.5-preview",
+          "veo-omni-flash",
+          "veo-omni-flash-edit",
+          "veo-omni-3-1",
+          "seedance-2.0-native",
+          "seedance-2.0-fast-native",
+          "seedance-2.5-native"
+        ]
+      },
+      "capabilities": {
+        "modelListEndpoint": "/models",
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/edits"
+        },
+        "maxReferences": 4,
+        "referenceFieldStrategy": "array-image",
+        "negativePrompt": "compat",
+        "customModel": true,
+        "maxPixels": 8294400,
+        "minSide": 256,
+        "multipleOf": 16,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "quality": true,
+          "background": true,
+          "outputFormat": true
+        },
+        "qualityOptions": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "backgroundOptions": [
+          "auto",
+          "transparent",
+          "opaque"
+        ],
+        "outputFormatOptions": [
+          "png",
+          "jpeg",
+          "webp"
+        ],
+        "video": {
+          "models": [
+            "grok-imagine-video",
+            "grok-imagine-video-1.5-preview",
+            "veo-omni-flash",
+            "veo-omni-flash-edit",
+            "veo-omni-3-1",
+            "seedance-2.0-native",
+            "seedance-2.0-fast-native",
+            "seedance-2.5-native"
+          ],
+          "endpoints": {
+            "create": "/videos",
+            "status": "/videos/{id}",
+            "content": "/videos/{id}/content"
+          },
+          "requestFormat": "json",
+          "maxReferences": 4,
+          "referenceField": "image",
+          "multiReferenceField": "images",
+          "defaultSeconds": "6",
+          "seconds": [
+            "1",
+            "2",
+            "4",
+            "6",
+            "8",
+            "10",
+            "12",
+            "15"
+          ],
+          "defaultAspectRatio": "16:9",
+          "aspectRatios": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "2:1",
+            "1:2",
+            "19.5:9",
+            "9:19.5",
+            "20:9",
+            "9:20"
+          ],
+          "defaultResolution": "720P",
+          "resolutions": [
+            "480P",
+            "720P"
+          ],
+          "negativePrompt": false,
+          "customModel": true
+        }
+      }
+    },
+    "change2pro": {
+      "label": "change2pro 兼容预设",
+      "description": "OpenAI 兼容同步：POST /v1/images/generations 与 /v1/images/edits（参考图以原始字节 multipart 直传，字段 image / image[]）。国内直连用 gateway.forkc2p.com（与 gateway.change2pro.com 等价，后者需外网）。实测：不指定 response_format 时默认回外链 URL（Cloudflare R2），选 b64_json 可避免外链；1:1 请求 1024x1024 实际输出约 1254x1254，2:3 / 3:2 / 16:9 / 2048 / 3840x2160 均按请求返回；「质量」选 max 会把比例改写为 3:4；stream=true 可用但明显更慢（约 21s → 102s）、只回 url 且无 [DONE]；单张约 $0.014。 实测（2026-11-04）：/v1/images/edits 接受 image+mask，遮罩外像素仅 0.5% 平均差异（羽化边缘），确认为真局部重绘；/v1/models 不返回 capability 字段。 尺寸档位沿用官方工作台像素表（如4K 2:3=2304x3456，4K 3:4=2400x3200）；自定义宽高按官方16像素取整/边长/总像素限制处理。",
+      "baseUrl": "https://gateway.forkc2p.com/v1",
+      "models": {
+        "image": [
+          "gpt-image-2.5-sunburst",
+          "gpt-image-2.5-flare",
+          "gpt-image-2"
+        ],
+        "chat": [],
+        "video": []
+      },
+      "capabilities": {
+        "modelListEndpoint": "/models",
+        "usageEndpoint": "/usage",
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/edits"
+        },
+        "streamCapable": true,
+        "streamFallbackToSync": true,
+        "preferredResponseFormat": "b64_json",
+        "referenceFieldStrategy": "array-image",
+        "negativePrompt": "merge",
+        "customModel": true,
+        "maxReferences": 4,
+        "maxPixels": 8294400,
+        "minSide": 256,
+        "multipleOf": 16,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "size": true,
+          "quality": true,
+          "background": false,
+          "outputFormat": false,
+          "n": false,
+          "responseFormat": true,
+          "stream": true,
+          "mask": true,
+          "complexity": "model"
+        },
+        "qualityOptions": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "responseFormatOptions": [
+          "url",
+          "b64_json"
+        ],
+        "defaultImageModel": "gpt-image-2.5-sunburst",
+        "supportsIdempotency": false,
+        "concurrency": {
+          "scope": "provider-account",
+          "max": null,
+          "source": "authenticated-metadata-required"
+        },
+        "capabilityNote": "gpt-image-2.6 所有型号均可尝试 GIF；尚未确认支持时，选择后显示提示。实际文件按供应商返图识别。SVG 暂不开放。",
+        "capabilityEvidence": {
+          "source": "https://gateway.forkc2p.com/docs/",
+          "version": "146c7978664544fed962",
+          "verified": "2026-11-12",
+          "liveModelsRequiresKey": true
+        },
+        "gifSelectionPolicy": "all-gpt-image-2.6-user-opt-in",
+        "complexityModelPattern": "^gpt-image-2\\.6(?:$|-)",
+        "complexityOptions": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "complexityEvidence": {
+          "source": "https://daily.forkc2p.com/studio/",
+          "script": "/ui/assets/studio-B3B5Njq3.js",
+          "field": "complexity",
+          "verified": "2026-11-13",
+          "verifiedTransport": [
+            "images JSON",
+            "images edits multipart"
+          ],
+          "nativeTaskTransport": "input.complexity, inherited image input",
+          "generationTested": false
+        },
+        "imageSizePolicy": "change2pro-studio",
+        "imageSizePresets": {
+          "1K": {
+            "1:1": "1024x1024",
+            "3:2": "1536x1024",
+            "2:3": "1024x1536",
+            "16:9": "1280x720",
+            "9:16": "720x1280",
+            "4:3": "1024x768",
+            "3:4": "768x1024",
+            "21:9": "1920x816"
+          },
+          "2K": {
+            "1:1": "2048x2048",
+            "3:2": "2160x1440",
+            "2:3": "1440x2160",
+            "16:9": "2560x1440",
+            "9:16": "1440x2560",
+            "4:3": "2048x1536",
+            "3:4": "1536x2048",
+            "21:9": "3120x1344"
+          },
+          "4K": {
+            "1:1": "2880x2880",
+            "3:2": "3456x2304",
+            "2:3": "2304x3456",
+            "16:9": "3840x2160",
+            "9:16": "2160x3840",
+            "4:3": "3200x2400",
+            "3:4": "2400x3200",
+            "21:9": "3840x1648"
+          }
+        },
+        "imageSizeEvidence": {
+          "source": "https://daily.forkc2p.com/ui/assets/studio-B3B5Njq3.js",
+          "sha256": "9e4aae215f05d14d4403e3a22b2b1a5e043964921826ff87e55d920f347eb348",
+          "verified": "2026-11-13",
+          "generationTested": false
+        },
+        "imageSizeLimits": {
+          "multipleOf": 16,
+          "maxSide": 3840,
+          "maxAspectRatio": 3,
+          "minPixels": 655360,
+          "maxPixels": 8294400
+        }
+      }
+    },
+    "change2pro-async": {
+      "label": "change2pro 异步任务（图片）",
+      "description": "把生图当作上游任务：提交后拿任务编号轮询，长耗时或批量时不占住单条连接。提交 POST /v1/images/generations/async（文生图）或 /v1/images/edits/async（图生图，multipart 参考图直传），轮询 GET /v1/images/tasks/{id}（服务端建议 Retry-After ≥ 3 秒）。实测：终态状态名不统一——generations 侧为 done、edits 侧为 completed；终态含 result.data[]（b64_json 或 url）、cost_usd、image_size_tier、expires_at（保留 24 小时），结构与 65535 原生任务一致，因此费用与尺寸档位也能在卡片上显示。国内直连 gateway.forkc2p.com。 实测（2026-11-04）：/v1/images/edits 接受 image+mask，遮罩外像素仅 0.5% 平均差异（羽化边缘），确认为真局部重绘；/v1/models 不返回 capability 字段。 尺寸档位沿用官方工作台像素表（如4K 2:3=2304x3456，4K 3:4=2400x3200）；自定义宽高按官方16像素取整/边长/总像素限制处理。",
+      "baseUrl": "https://gateway.forkc2p.com/v1",
+      "models": {
+        "image": [
+          "gpt-image-2.5-sunburst",
+          "gpt-image-2.5-flare",
+          "gpt-image-2"
+        ],
+        "chat": [],
+        "video": []
+      },
+      "capabilities": {
+        "protocol": "openai-async-image",
+        "modelListEndpoint": "/models",
+        "usageEndpoint": "/usage",
+        "asyncEndpoints": {
+          "generate": "/images/generations/async",
+          "edit": "/images/edits/async",
+          "status": "/images/tasks/{id}"
+        },
+        "taskStatusUrlField": "poll_url",
+        "pollIntervalMs": 4000,
+        "terminalRetentionHours": 24,
+        "maxBodyMiB": 32,
+        "streamCapable": false,
+        "preferredResponseFormat": "b64_json",
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/edits"
+        },
+        "referenceFieldStrategy": "array-image",
+        "negativePrompt": "merge",
+        "customModel": true,
+        "maxReferences": 4,
+        "maxPixels": 8294400,
+        "minSide": 256,
+        "multipleOf": 16,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "size": true,
+          "quality": true,
+          "background": false,
+          "outputFormat": false,
+          "n": false,
+          "responseFormat": true,
+          "stream": false,
+          "mask": true,
+          "complexity": "model"
+        },
+        "qualityOptions": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "responseFormatOptions": [
+          "url",
+          "b64_json"
+        ],
+        "defaultImageModel": "gpt-image-2.5-sunburst",
+        "supportsIdempotency": false,
+        "concurrency": {
+          "scope": "provider-account",
+          "max": null,
+          "source": "authenticated-metadata-required"
+        },
+        "capabilityNote": "gpt-image-2.6 所有型号均可尝试 GIF；尚未确认支持时，选择后显示提示。实际文件按供应商返图识别。SVG 暂不开放。",
+        "capabilityEvidence": {
+          "source": "https://gateway.forkc2p.com/docs/",
+          "version": "146c7978664544fed962",
+          "verified": "2026-11-12",
+          "liveModelsRequiresKey": true
+        },
+        "gifSelectionPolicy": "all-gpt-image-2.6-user-opt-in",
+        "complexityModelPattern": "^gpt-image-2\\.6(?:$|-)",
+        "complexityOptions": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "complexityEvidence": {
+          "source": "https://daily.forkc2p.com/studio/",
+          "script": "/ui/assets/studio-B3B5Njq3.js",
+          "field": "complexity",
+          "verified": "2026-11-13",
+          "verifiedTransport": [
+            "images JSON",
+            "images edits multipart"
+          ],
+          "nativeTaskTransport": "input.complexity, inherited image input",
+          "generationTested": false
+        },
+        "imageSizePolicy": "change2pro-studio",
+        "imageSizePresets": {
+          "1K": {
+            "1:1": "1024x1024",
+            "3:2": "1536x1024",
+            "2:3": "1024x1536",
+            "16:9": "1280x720",
+            "9:16": "720x1280",
+            "4:3": "1024x768",
+            "3:4": "768x1024",
+            "21:9": "1920x816"
+          },
+          "2K": {
+            "1:1": "2048x2048",
+            "3:2": "2160x1440",
+            "2:3": "1440x2160",
+            "16:9": "2560x1440",
+            "9:16": "1440x2560",
+            "4:3": "2048x1536",
+            "3:4": "1536x2048",
+            "21:9": "3120x1344"
+          },
+          "4K": {
+            "1:1": "2880x2880",
+            "3:2": "3456x2304",
+            "2:3": "2304x3456",
+            "16:9": "3840x2160",
+            "9:16": "2160x3840",
+            "4:3": "3200x2400",
+            "3:4": "2400x3200",
+            "21:9": "3840x1648"
+          }
+        },
+        "imageSizeEvidence": {
+          "source": "https://daily.forkc2p.com/ui/assets/studio-B3B5Njq3.js",
+          "sha256": "9e4aae215f05d14d4403e3a22b2b1a5e043964921826ff87e55d920f347eb348",
+          "verified": "2026-11-13",
+          "generationTested": false
+        },
+        "imageSizeLimits": {
+          "multipleOf": 16,
+          "maxSide": 3840,
+          "maxAspectRatio": 3,
+          "minPixels": 655360,
+          "maxPixels": 8294400
+        }
+      }
+    },
+    "65535-openai": {
+      "label": "65535 OpenAI 兼容（参考图直传）",
+      "description": "图片任务走 /v1/images/edits 与 /v1/images/generations，参考图按原始字节 multipart 直传（image[] 多图实测可用），不做 base64 内联，避免 65535 网关 32 MiB 请求体上限被 base64 膨胀撞破；适合多张或大体积参考图。实测：edits 会忽略 n（只回 1 张）；stream=true 时流式事件固定回 url（response_format=b64_json 在流式下被忽略）；url 结果域名形如 task1.65535.space/jobs/<id>/<n>.png，24 小时内有效。",
+      "baseUrl": "https://task-api-1-cn.65535.space",
+      "models": {
+        "image": [
+          "gpt-image-2",
+          "gpt-image-2.5",
+          "gpt-image-2.5-flare",
+          "gpt-image-2.5-sunburst",
+          "gpt-image-2.6-flare",
+          "gpt-image-2.6-sunburst",
+          "gpt-image-2-auto",
+          "gpt-image-2.5-auto",
+          "gpt-image-2.5-flare-auto",
+          "gpt-image-2.5-sunburst-auto",
+          "gpt-image-2-eco",
+          "sd-v2-720-fast",
+          "grok-imagine-image-quality",
+          "grok-imagine-image",
+          "grok-imagine-image-2.0",
+          "gpt-image-2-n",
+          "seedvr2-7b",
+          "gemini-3-pro-image",
+          "gemini-3.1-flash-image",
+          "gemini-nano-banana-2.1",
+          "gpt-image-2.5-flare-eco",
+          "gpt-image-2.5-sunburst-eco",
+          "gpt-image-2.6-flare-eco",
+          "gpt-image-2.6-sunburst-eco",
+          "gpt-image-2-native",
+          "gpt-image-2.5-flare-native",
+          "gpt-image-2.5-sunburst-native",
+          "gpt-image-2.6-flare-native",
+          "gpt-image-2.6-sunburst-native"
+        ],
+        "chat": [],
+        "video": []
+      },
+      "capabilities": {
+        "modelListEndpoint": "/v1/models",
+        "pricingEndpoint": "/v1/pricing",
+        "usageEndpoint": "/v1/usage",
+        "imageEndpoints": {
+          "generate": "/v1/images/generations",
+          "edit": "/v1/images/edits"
+        },
+        "streamCapable": true,
+        "streamFallbackToSync": true,
+        "preferredResponseFormat": "b64_json",
+        "referenceFieldStrategy": "array-image",
+        "negativePrompt": "compat",
+        "customModel": true,
+        "maxReferences": 4,
+        "maxPixels": 35651584,
+        "minSide": 256,
+        "multipleOf": 1,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "size": true,
+          "quality": true,
+          "background": true,
+          "outputFormat": true,
+          "n": "model",
+          "complexity": "model"
+        },
+        "qualityOptions": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgroundOptions": [
+          "auto",
+          "transparent",
+          "opaque"
+        ],
+        "outputFormatOptions": [
+          "png",
+          "jpeg",
+          "webp"
+        ],
+        "responseFormatOptions": [
+          "url",
+          "b64_json"
+        ],
+        "defaultImageModel": "gpt-image-2.5-sunburst",
+        "modelOverrides": {
+          "gpt-image-2.5-sunburst-eco": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "n": false
+          },
+          "gpt-image-2.5-flare-eco": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "n": false
+          },
+          "gpt-image-2.5-sunburst": {
+            "quality": false
+          },
+          "gpt-image-2.5-flare": {
+            "quality": false
+          },
+          "gpt-image-2.5": {
+            "quality": false
+          },
+          "gemini-3-pro-image": {
+            "n": false,
+            "mask": false
+          },
+          "gemini-3.1-flash-image": {
+            "n": false,
+            "mask": false
+          },
+          "gpt-image-2.6-flare": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-flare-eco": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-flare-native": {
+            "outputFormat": true,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "announced"
+            },
+            "gifSupportStatus": "announced",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst-eco": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst-native": {
+            "outputFormat": true,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "announced"
+            },
+            "gifSupportStatus": "announced",
+            "complexity": true
+          }
+        },
+        "maxBodyMiB": 32,
+        "supportsIdempotency": false,
+        "concurrency": {
+          "scope": "provider-account",
+          "max": null,
+          "source": "not-published"
+        },
+        "capabilityNote": "gpt-image-2.6 所有型号均可尝试 GIF；尚未确认支持时，选择后显示提示。实际文件按供应商返图识别。SVG 暂不开放。",
+        "gifSelectionPolicy": "all-gpt-image-2.6-user-opt-in",
+        "complexityModelPattern": "^gpt-image-2\\.6(?:$|-)",
+        "complexityOptions": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "complexityEvidence": {
+          "source": "https://daily.forkc2p.com/studio/",
+          "script": "/ui/assets/studio-B3B5Njq3.js",
+          "field": "complexity",
+          "verified": "2026-11-13",
+          "verifiedTransport": [
+            "images JSON",
+            "images edits multipart"
+          ],
+          "nativeTaskTransport": "input.complexity, inherited image input",
+          "generationTested": false
+        }
+      }
+    },
+    "65535-native": {
+      "label": "65535 原生任务 API（图片）",
+      "description": "图片任务通过本地 /api/tasks 转换到 /v1/tasks，参考图以 base64 内联（体积约为原图 1.34 倍）；65535 网关请求体上限 32 MiB，参考图合计超过约 23 MB 时会返回 413，请改用「65535 OpenAI 兼容（参考图直传）」预设。实测：提交返回 {id,kind,status,status_url}，轮询 pending→running→done，终态含 result.data[0].b64_json、result_urls[]、cost_usd、upstream_ms 与 expires_at（终态保留 24 小时）；相同 Idempotency-Key 重复提交会复用同一 id 不重复扣费；gpt-image-2 实测会忽略 n 与 resolution（只出 1 张、档位固定 1K），已在该模型下禁用这两项。",
+      "baseUrl": "https://task-api-1-cn.65535.space",
+      "models": {
+        "image": [
+          "gpt-image-2",
+          "gpt-image-2.5",
+          "gpt-image-2.5-flare",
+          "gpt-image-2.5-sunburst",
+          "gpt-image-2.6-flare",
+          "gpt-image-2.6-sunburst",
+          "gpt-image-2-auto",
+          "gpt-image-2.5-auto",
+          "gpt-image-2.5-flare-auto",
+          "gpt-image-2.5-sunburst-auto",
+          "gpt-image-2-eco",
+          "sd-v2-720-fast",
+          "grok-imagine-image-quality",
+          "grok-imagine-image",
+          "grok-imagine-image-2.0",
+          "gpt-image-2-n",
+          "seedvr2-7b",
+          "gemini-3-pro-image",
+          "gemini-3.1-flash-image",
+          "gemini-nano-banana-2.1",
+          "gpt-image-2.5-flare-eco",
+          "gpt-image-2.5-sunburst-eco",
+          "gpt-image-2.6-flare-eco",
+          "gpt-image-2.6-sunburst-eco",
+          "gpt-image-2-native",
+          "gpt-image-2.5-flare-native",
+          "gpt-image-2.5-sunburst-native",
+          "gpt-image-2.6-flare-native",
+          "gpt-image-2.6-sunburst-native"
+        ],
+        "chat": [],
+        "video": []
+      },
+      "capabilities": {
+        "protocol": "65535-native-task",
+        "modelListEndpoint": "/v1/models",
+        "pricingEndpoint": "/v1/pricing",
+        "usageEndpoint": "/v1/usage",
+        "taskEndpoint": "/v1/tasks",
+        "taskStatusEndpoint": "/v1/tasks/{id}",
+        "taskListEndpoint": "/v1/tasks",
+        "taskStatusUrlField": "status_url",
+        "pollIntervalMs": 3000,
+        "terminalRetentionHours": 24,
+        "maxBodyMiB": 32,
+        "streamCapable": false,
+        "preferredResponseFormat": "b64_json",
+        "costFields": [
+          "cost_usd",
+          "upstream_ms",
+          "queue_ms",
+          "retry_count"
+        ],
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/edits"
+        },
+        "referenceFieldStrategy": "image_urls",
+        "negativePrompt": "merge",
+        "customModel": true,
+        "maxReferences": 16,
+        "maxPixels": 35651584,
+        "minSide": 256,
+        "multipleOf": 1,
+        "maxRefFileMB": 30,
+        "maxRefPixels": 16777216,
+        "imageParams": {
+          "size": true,
+          "resolution": true,
+          "quality": "model",
+          "n": "model",
+          "responseFormat": true,
+          "stream": false,
+          "image": true,
+          "imageUrl": true,
+          "imageUrls": true,
+          "images": true,
+          "mask": "model",
+          "seed": "model",
+          "colorCorrection": "model",
+          "resizeMethod": "model",
+          "complexity": "model"
+        },
+        "qualityOptions": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgroundOptions": [
+          "auto",
+          "transparent",
+          "opaque"
+        ],
+        "outputFormatOptions": [
+          "png",
+          "jpeg",
+          "webp"
+        ],
+        "responseFormatOptions": [
+          "url",
+          "b64_json"
+        ],
+        "resolutionOptions": [
+          "1k",
+          "2k",
+          "4k"
+        ],
+        "defaultResolution": "2k",
+        "modelCapabilitiesSource": "/v1/models + /v1/pricing + 官方公告/文档",
+        "capabilityResolution": "live-first-configured-fallback",
+        "modelsRequireLiveMetadata": true,
+        "defaultImageModel": "gpt-image-2",
+        "modelOverrides": {
+          "gpt-image-2": {
+            "n": false,
+            "resolution": false,
+            "quality": false,
+            "native4K": false,
+            "sizeStrategy": "explicit-pixels"
+          },
+          "gpt-image-2.5": {
+            "quality": false,
+            "native4K": false,
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2.5-flare": {
+            "native4K": false,
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2.5-sunburst": {
+            "native4K": false,
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2.5-auto": {
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2.5-flare-auto": {
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2.5-sunburst-auto": {
+            "sizeStrategy": "upscale"
+          },
+          "gpt-image-2-n": {
+            "quality": false,
+            "n": false,
+            "native4K": false,
+            "sizeStrategy": "prompt-controlled-multi",
+            "maxReferences": 16
+          },
+          "gpt-image-2-eco": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "native4K": true
+          },
+          "gpt-image-2-eco2": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "native4K": true
+          },
+          "gpt-image-2.5-flare-eco": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "native4K": true,
+            "n": false
+          },
+          "gpt-image-2.5-sunburst-eco": {
+            "qualityOptions": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "native4K": true,
+            "n": false
+          },
+          "grok-imagine-image-2.0": {
+            "qualityOptions": [
+              "low",
+              "medium"
+            ],
+            "native4K": false
+          },
+          "grok-imagine-image-quality": {
+            "quality": false,
+            "resolutionOptions": [
+              "1k",
+              "2k"
+            ],
+            "native4K": false
+          },
+          "grok-imagine-image": {
+            "quality": false,
+            "native4K": false
+          },
+          "seedvr2-7b": {
+            "quality": false,
+            "n": false,
+            "maxReferences": 1,
+            "sizeStrategy": "explicit-pixels",
+            "specialParams": [
+              "seed",
+              "color_correction",
+              "resize_method"
+            ],
+            "mask": false,
+            "maxPixels": 35651584
+          },
+          "gemini-3-pro-image": {
+            "n": false,
+            "mask": false,
+            "sizeStrategy": "ratio-resolution"
+          },
+          "gemini-3.1-flash-image": {
+            "n": false,
+            "mask": false,
+            "sizeStrategy": "ratio-resolution"
+          },
+          "gpt-image-2.6-flare": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-flare-eco": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-flare-native": {
+            "outputFormat": true,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "announced"
+            },
+            "gifSupportStatus": "announced",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst-eco": {
+            "outputFormat": false,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "unverified"
+            },
+            "gifSupportStatus": "unverified",
+            "complexity": true
+          },
+          "gpt-image-2.6-sunburst-native": {
+            "outputFormat": true,
+            "outputFormatOptions": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif"
+            ],
+            "capabilityNote": "GIF 可尝试，实际支持情况以当前供应商返图为准。",
+            "capabilityEvidence": {
+              "source": "user-supplied-provider-announcement",
+              "date": "2026-11-05",
+              "gif": "announced"
+            },
+            "gifSupportStatus": "announced",
+            "complexity": true
+          }
+        },
+        "fallbackPolicy": "unknown-model-capability-do-not-send",
+        "supportsIdempotency": true,
+        "concurrency": {
+          "scope": "provider-account",
+          "max": null,
+          "source": "not-published"
+        },
+        "capabilityNote": "gpt-image-2.6 所有型号均可尝试 GIF；尚未确认支持时，选择后显示提示。实际文件按供应商返图识别。SVG 暂不开放。",
+        "gifSelectionPolicy": "all-gpt-image-2.6-user-opt-in",
+        "complexityModelPattern": "^gpt-image-2\\.6(?:$|-)",
+        "complexityOptions": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "complexityEvidence": {
+          "source": "https://daily.forkc2p.com/studio/",
+          "script": "/ui/assets/studio-B3B5Njq3.js",
+          "field": "complexity",
+          "verified": "2026-11-13",
+          "verifiedTransport": [
+            "images JSON",
+            "images edits multipart"
+          ],
+          "nativeTaskTransport": "input.complexity, inherited image input",
+          "generationTested": false
+        }
+      }
+    },
+    "futureai": {
+      "label": "FutureAI（参考图先上传）",
+      "baseUrl": "https://futureaiapi.com/v1",
+      "description": "FutureAI 专用 JSON 图片接口。图生图先 POST /v1/uploads/images，multipart 字段 file；生成传 image_urls，不内联 base64。GET /v1/models 返回 param_spec；6个当前模型与参数取自实测元数据。生成任务可 GET /v1/tasks/{id} 查询；未执行付费生图，成功回包的兼容解析以离线模拟验证。",
+      "models": {
+        "image": [
+          "gpt-image-2.6-flare-ext",
+          "gpt-image-2.6-sunburst-ext",
+          "gpt-image-2.5-flare-ext",
+          "gpt-image-2.5-sunburst-ext",
+          "gpt-image-2-ext",
+          "seedream-5-5"
+        ],
+        "chat": [],
+        "video": []
+      },
+      "capabilities": {
+        "protocol": "futureai-image",
+        "modelListEndpoint": "/models",
+        "uploadEndpoint": "/uploads/images",
+        "imageEndpoints": {
+          "generate": "/images/generations",
+          "edit": "/images/generations"
+        },
+        "taskStatusEndpoint": "/tasks/{id}",
+        "referenceFieldStrategy": "upload-image-urls",
+        "negativePrompt": "merge",
+        "customModel": true,
+        "streamCapable": false,
+        "supportsIdempotency": false,
+        "maxReferences": 16,
+        "maxRefFileMB": 20,
+        "maxRefFileBytes": 20971520,
+        "maxRefTotalBytes": 335544320,
+        "maxRefPixels": 16777216,
+        "referenceMimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "promptMaxChars": 2000,
+        "imageSizePolicy": "futureai-ratio",
+        "aspectRatios": [
+          "1:1",
+          "3:2",
+          "2:3",
+          "4:3",
+          "3:4",
+          "5:4",
+          "4:5",
+          "16:9",
+          "9:16",
+          "21:9",
+          "auto"
+        ],
+        "sizeModes": [
+          "ratio"
+        ],
+        "imageSizePresets": {
+          "1:1": {
+            "1K": "1024x1024",
+            "2K": "2048x2048",
+            "4K": "2880x2880",
+            "1.5K": "1536x1536"
+          },
+          "3:2": {
+            "1K": "1248x832",
+            "2K": "2512x1680",
+            "4K": "3520x2352",
+            "1.5K": "1888x1248"
+          },
+          "2:3": {
+            "1K": "832x1248",
+            "2K": "1680x2512",
+            "4K": "2352x3520",
+            "1.5K": "1248x1888"
+          },
+          "4:3": {
+            "1K": "1184x880",
+            "2K": "2368x1776",
+            "4K": "3312x2480",
+            "1.5K": "1776x1328"
+          },
+          "3:4": {
+            "1K": "880x1184",
+            "2K": "1776x2368",
+            "4K": "2480x3312",
+            "1.5K": "1328x1776"
+          },
+          "5:4": {
+            "1K": "1152x912",
+            "2K": "2288x1824",
+            "4K": "3216x2576",
+            "1.5K": "1712x1376"
+          },
+          "4:5": {
+            "1K": "912x1152",
+            "2K": "1824x2288",
+            "4K": "2576x3216",
+            "1.5K": "1376x1712"
+          },
+          "16:9": {
+            "1K": "1360x768",
+            "2K": "2736x1536",
+            "4K": "3840x2160",
+            "1.5K": "2048x1152"
+          },
+          "9:16": {
+            "1K": "768x1360",
+            "2K": "1536x2736",
+            "4K": "2160x3840",
+            "1.5K": "1152x2048"
+          },
+          "21:9": {
+            "1K": "1568x672",
+            "2K": "3136x1344",
+            "4K": "3840x1648",
+            "1.5K": "2352x1008"
+          },
+          "2:1": {
+            "1K": "1456x720",
+            "2K": "2896x1456",
+            "4K": "3840x1920",
+            "1.5K": "2176x1088"
+          },
+          "1:2": {
+            "1K": "720x1456",
+            "2K": "1456x2896",
+            "4K": "1920x3840",
+            "1.5K": "1088x2176"
+          },
+          "3:1": {
+            "1K": "1776x592",
+            "2K": "3552x1184",
+            "4K": "3840x1280",
+            "1.5K": "2656x880"
+          },
+          "1:3": {
+            "1K": "592x1776",
+            "2K": "1184x3552",
+            "4K": "1280x3840",
+            "1.5K": "880x2656"
+          },
+          "9:21": {
+            "1K": "672x1568",
+            "2K": "1344x3136",
+            "4K": "1648x3840",
+            "1.5K": "1008x2352"
+          }
+        },
+        "maxPixels": 8294400,
+        "minSide": 16,
+        "multipleOf": 16,
+        "imageParams": {
+          "size": true,
+          "resolution": true,
+          "quality": false,
+          "complexity": false,
+          "background": false,
+          "outputFormat": false,
+          "responseFormat": false,
+          "stream": false,
+          "mask": false,
+          "n": false
+        },
+        "resolutionOptions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "defaultResolution": "1K",
+        "defaultImageModel": "gpt-image-2.6-sunburst-ext",
+        "complexityOptions": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "qualityOptions": [
+          "auto",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "outputFormatOptions": [
+          "png",
+          "jpeg",
+          "webp"
+        ],
+        "capabilityNote": "参考图先上传；每张独立任务。提示词上限2000字（含参考图说明）。尺寸按比例＋分辨率提交。",
+        "capabilityEvidence": {
+          "source": "https://futureaiapi.com/v1/models",
+          "verified": "2026-11-14",
+          "paramSpecVersion": 1,
+          "uploadVerified": true,
+          "generationTested": false
+        },
+        "modelOverrides": {
+          "gpt-image-2.6-flare-ext": {
+            "quality": true,
+            "complexity": true,
+            "outputFormat": true
+          },
+          "gpt-image-2.6-sunburst-ext": {
+            "quality": true,
+            "complexity": true,
+            "outputFormat": true
+          },
+          "gpt-image-2-ext": {
+            "maxReferences": 15,
+            "maxRefFileBytes": 20485760,
+            "maxRefFileMB": 19.5367431640625,
+            "maxRefTotalBytes": 268435456,
+            "sizeModes": [
+              "ratio",
+              "pixel"
+            ],
+            "aspectRatios": [
+              "1:1",
+              "3:2",
+              "2:3",
+              "4:3",
+              "3:4",
+              "5:4",
+              "4:5",
+              "16:9",
+              "9:16",
+              "21:9",
+              "2:1",
+              "1:2",
+              "3:1",
+              "1:3",
+              "9:21",
+              "auto"
+            ]
+          },
+          "seedream-5-5": {
+            "maxReferences": 10,
+            "maxRefFileMB": 30,
+            "maxRefFileBytes": 31457280,
+            "maxRefTotalBytes": 314572800,
+            "resolutionOptions": [
+              "1K",
+              "1.5K",
+              "2K"
+            ],
+            "aspectRatios": [
+              "1:1",
+              "4:3",
+              "3:4",
+              "16:9",
+              "9:16",
+              "3:2",
+              "2:3",
+              "21:9",
+              "2:1",
+              "1:2"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "fallback": {
+    "modelListEndpoint": "/models",
+    "imageEndpoints": {
+      "generate": "/images/generations",
+      "edit": "/images/edits"
+    },
+    "maxReferences": 1,
+    "referenceFieldStrategy": "repeat-image",
+    "negativePrompt": "compat",
+    "customModel": true,
+    "maxPixels": 8294400,
+    "minSide": 256,
+    "multipleOf": 16,
+    "maxRefFileMB": 30,
+    "maxRefPixels": 16777216,
+    "imageParams": {
+      "quality": true,
+      "background": true,
+      "outputFormat": true
+    },
+    "qualityOptions": [
+      "auto",
+      "low",
+      "medium",
+      "high"
+    ],
+    "backgroundOptions": [
+      "auto",
+      "transparent",
+      "opaque"
+    ],
+    "outputFormatOptions": [
+      "png",
+      "jpeg",
+      "webp"
+    ],
+    "video": {
+      "models": [
+        "grok-imagine-video",
+        "grok-imagine-video-1.5-preview",
+        "veo-omni-flash",
+        "veo-omni-flash-edit",
+        "veo-omni-3-1",
+        "seedance-2.0-native",
+        "seedance-2.0-fast-native",
+        "seedance-2.5-native"
+      ],
+      "endpoints": {
+        "create": "/videos",
+        "status": "/videos/{id}",
+        "content": "/videos/{id}/content"
+      },
+      "requestFormat": "json",
+      "maxReferences": 4,
+      "referenceField": "image",
+      "multiReferenceField": "images",
+      "defaultSeconds": "6",
+      "seconds": [
+        "1",
+        "2",
+        "4",
+        "6",
+        "8",
+        "10",
+        "12",
+        "15"
+      ],
+      "defaultAspectRatio": "16:9",
+      "aspectRatios": [
+        "1:1",
+        "16:9",
+        "9:16",
+        "4:3",
+        "3:4",
+        "3:2",
+        "2:3",
+        "2:1",
+        "1:2",
+        "19.5:9",
+        "9:19.5",
+        "20:9",
+        "9:20"
+      ],
+      "defaultResolution": "720P",
+      "resolutions": [
+        "480P",
+        "720P"
+      ],
+      "negativePrompt": false,
+      "customModel": true
+    }
+  }
+}

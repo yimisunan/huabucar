@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FAF5EF">
+<title>猫画布 · 图片/视频生成</title>
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/画布版.css?v=catui15">
+</head>
+<body>
+
+<!-- ================= 顶栏 ================= -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark"><img src="img/cat-mascot-ui.png" alt="猫画布" onerror="this.onerror=null;this.style.visibility='hidden'"></span>
+    <span class="brand-txt">猫画布</span>
+  </div>
+  <div class="mode-switch" id="modeSwitch">
+    <button data-mode="img2img" class="active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="12" height="12" rx="3.4"/><path d="M9 21h9a3 3 0 0 0 3-3V9"/></svg><span>图生图</span></button>
+    <button data-mode="txt2img"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L20 8l-4-4L4 16v4Z"/><path d="M14 6l4 4"/></svg><span>文生图</span></button>
+    <button data-mode="video"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.4"/><path d="M11 10.5l3.2 1.5-3.2 1.5z" fill="currentColor" stroke="none"/></svg><span>视频</span></button>
+  </div>
+  <div class="top-actions">
+    <button class="icon-btn2" id="btnConsole" title="控制台：参数 / 素材 / 总览 / 设置 / 样板 / 图库" aria-label="打开控制台" aria-haspopup="dialog" aria-expanded="false">
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.2" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.8" cy="12" r="1.7"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ================= 画布 ================= -->
+<main class="canvas" id="canvas"><div class="aurora" aria-hidden="true"></div>
+  <div class="world" id="world"></div>
+
+  <div class="canvas-empty" id="canvasEmpty">
+    <div class="empty-art"><img src="img/cat-empty-ui.png" alt="" onerror="this.onerror=null;this.style.visibility='hidden'"></div>
+    <div class="t1">想画点什么？</div>
+    <div class="t2" id="canvasEmptyHint">① 选模式　② 加参考图或写描述　③ 点「生成」<br>结果会以卡片落在画布上，可拖动整理、双指缩放</div>
+    <div class="empty-actions" aria-label="开始创作快捷入口">
+      <button class="empty-action" id="emptyAddRef" type="button" title="添加参考图" aria-label="添加参考图"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.4"/><path d="M12 8.6v6.8M8.6 12h6.8"/></svg><span class="lbl">添加参考图</span></button>
+      <button class="empty-action" id="emptyOptimize" type="button" title="AI 优化提示词" aria-label="AI 优化提示词"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9L5.2 10.3l4.9-1.9z"/><path d="M18.4 16.2l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>AI 优化提示词</button>
+    </div>
+  </div>
+
+  <div class="og-bar" id="ogBar" style="display:none;">
+    <i class="og-fill" id="ogFill" aria-hidden="true"></i>
+    <span id="ogText">超生成</span>
+    <button id="ogAct" type="button" title="终止本批未开始的任务">终止</button>
+  </div>
+
+  <div class="canvas-tools" id="canvasTools">
+    <div class="ct-menu" id="ctMenu" hidden>
+      <button class="ct-item" id="btnOverview" type="button" aria-label="画布总览"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span class="lbl">画布总览</span></button>
+      <button class="ct-item" id="btnArrange" type="button" aria-label="自动整理"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span class="lbl">自动整理</span></button>
+      <button class="ct-item" id="btnFitAll" type="button" aria-label="适应全部卡片"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg><span class="lbl">适应全部</span></button>
+      <button class="ct-item" id="btnLocate" type="button" aria-label="定位进行中任务"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5.2"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3"/></svg><span class="lbl">定位进行中</span></button>
+      <button class="ct-item danger" id="btnStopQueued" type="button" aria-label="终止排队任务"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M9.6 9.6h4.8v4.8H9.6z" fill="currentColor" stroke="none"/></svg><span class="lbl">终止排队</span></button>
+    </div>
+    <div class="ct-bottom">
+      <div class="ct-group zoom">
+        <button id="zoomOut" title="缩小" aria-label="缩小"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+        <span class="zv" id="zoomVal">100%</span>
+        <button id="zoomIn" title="放大" aria-label="放大"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button>
+        <button id="zoomReset" title="定位进行中（无则最新）" aria-label="定位进行中任务"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5.2"/><path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3"/></svg></button>
+      </div>
+      <button class="ct-fab" id="btnCanvasTools" type="button" aria-label="画布工具" aria-expanded="false" aria-controls="ctMenu"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L20 8l-4-4L4 16v4Z"/><path d="M14 6l4 4"/></svg><span class="lbl">工具</span></button>
+    </div>
+  </div>
+</main>
+
+<!-- ================= 底部输入坞 ================= -->
+<footer class="dock">
+  <div class="ref-strip" id="refStrip" style="display:none;">
+    <button class="ref-add" id="refAdd" title="添加参考图" aria-label="添加参考图"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></button>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+  </div>
+
+  <div class="quick-row" id="quickRow">
+    <button class="q-chip status" id="qcStatus" title="模式/参考图/模型（点击打开设置）"></button>
+    <button class="q-chip" id="qcTier"><b>—</b> 档位</button>
+    <button class="q-chip" id="qcRatio"><b>—</b> 比例</button>
+    <button class="q-chip" id="qcCount"><b>1</b> 张</button>
+    <button class="q-chip" id="qcVideo" style="display:none;"><b>6s</b> · 720P · 16:9</button>
+    <button class="q-chip" id="qcNeg">负面词</button>
+  </div>
+
+  <div class="prompt-row">
+    <div class="prompt-box">
+      <textarea id="prompt" rows="1" placeholder="描述你想要的画面…（图生图：说明要如何修改参考图）"></textarea>
+      <button class="prompt-expand" id="btnPromptEdit" type="button" title="展开编辑提示词" aria-label="展开编辑提示词"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg></button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="act-btn btn-ref" type="button" title="添加参考图" onclick="document.getElementById('fileInput').click()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.4"/><path d="M12 8.6v6.8M8.6 12h6.8"/></svg><span class="lbl">参考</span></button>
+    <button class="act-btn btn-opt" id="btnOptimize" title="AI 优化提示词" aria-label="AI 优化提示词"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9L5.2 10.3l4.9-1.9z"/><path d="M18.4 16.2l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></button>
+    <button class="act-btn btn-gen" id="btnGen"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="12" cy="15.6" rx="4.6" ry="3.9"/><ellipse cx="5.7" cy="10.4" rx="1.9" ry="2.4"/><ellipse cx="9.9" cy="7" rx="1.9" ry="2.4"/><ellipse cx="14.4" cy="7" rx="1.9" ry="2.4"/><ellipse cx="18.6" cy="10.4" rx="1.9" ry="2.4" transform="rotate(-18 18.6 10.4)"/></svg><span class="lbl">生成</span></button>
+  </div>
+</footer>
+
+<!-- ================= 控制台入口（顶栏 ⋯） ================= -->
+<div class="console-sheet" id="consoleSheet" role="dialog" aria-modal="true" aria-label="控制台">
+  <div class="cs-card" role="document">
+    <div class="cs-title">控制台</div>
+    <div class="cs-grid">
+      <button class="cs-item" type="button" data-go="params"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="11" cy="17" r="2"/></svg><span>生成参数</span></button>
+      <button class="cs-item" type="button" data-go="lib"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.4"/><path d="M4 16.2l4.6-4.4 3.6 3.4 3.4-3.2L20 16"/><circle cx="9" cy="9.2" r="1.4"/></svg><span>素材与历史</span></button>
+      <button class="cs-item" type="button" data-go="overview"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>画布总览</span></button>
+      <button class="cs-item" type="button" data-go="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.1"/><path d="M12 3.4v2.6M12 18v2.6M4.6 12H3M21 12h-1.6M6.7 6.7l1.8 1.8M15.5 15.5l1.8 1.8M17.3 6.7l-1.8 1.8M8.5 15.5l-1.8 1.8"/></svg><span>连接设置</span></button>
+      <button class="cs-item" type="button" data-go="templates"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="13" rx="3.2"/><path d="M8 21h10a3 3 0 0 0 3-3V8"/></svg><span>方案样板</span></button>
+      <button class="cs-item" type="button" data-go="gallery"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="13" rx="3"/><path d="M19 8.4v9.1a2.5 2.5 0 0 1-2.5 2.5H7.4"/><circle cx="8" cy="9.6" r="1.3"/><path d="M3.6 15.6l3.6-3.2 2.9 2.7 2.5-2.2 3.4 3"/></svg><span>参考图库</span></button>
+    </div>
+    <div class="cs-hint">Esc 关闭 · Ctrl/⌘ + Enter 生成</div>
+  </div>
+</div>
+
+<!-- ================= 统一控制台：参数 ================= -->
+<aside class="drawer" id="drawerParams">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="12" cy="15.6" rx="4.6" ry="3.9"/><ellipse cx="5.7" cy="10.4" rx="1.9" ry="2.4"/><ellipse cx="9.9" cy="7" rx="1.9" ry="2.4"/><ellipse cx="14.4" cy="7" rx="1.9" ry="2.4"/><ellipse cx="18.6" cy="10.4" rx="1.9" ry="2.4" transform="rotate(-18 18.6 10.4)"/></svg>生成参数</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab active" data-go="params">参数</button>
+    <button class="d-tab" data-go="lib">素材</button>
+    <button class="d-tab" data-go="overview">总览</button>
+    <button class="d-tab" data-go="settings">设置</button>
+    <button class="d-tab" data-go="templates">样板</button>
+    <button class="d-tab" data-go="gallery">图库</button>
+  </nav>
+  <div class="drawer-body">
+    <!-- 区块快速跳转：由 js/canvas/ui-nav.js 驱动，按当前模式自动隐藏不适用的区块 -->
+    <div class="d-hint" id="modelCapabilityHint" role="status"></div>
+    <nav class="d-jump" aria-label="参数区块快速跳转">
+      <button type="button" data-jump="imageOutputPanel">输出</button>
+      <button type="button" data-jump="secBatch">批量</button>
+      <button type="button" data-jump="secPrompt">提示词</button>
+      <button type="button" data-jump="videoPanel">视频</button>
+      <button type="button" data-jump="secPreset">预设</button>
+    </nav>
+    <details class="d-sec fold" id="imageOutputPanel" open>
+      <summary>输出设置</summary>
+      <div class="fold-body">
+        <div class="d-sec">
+          <label>清晰度档位</label>
+          <div class="tier-tabs" id="tierTabs"></div>
+        </div>
+        <div class="d-sec">
+          <label>图片比例</label>
+          <div class="size-grid" id="sizeGrid"></div>
+          <div class="d-hint" id="tierHint"></div>
+        </div>
+        <div class="d-sec">
+          <label>原生分辨率档位</label>
+          <select class="inp" id="imageResolution"><option value="1k">1K</option><option value="2k" selected>2K</option><option value="4k">4K</option></select>
+          <div class="d-hint">仅在当前图片模型能力允许时发送原生分辨率；服务端回传尺寸优先用于结果展示。</div>
+        </div>
+        <div class="d-sec">
+          <label>自定义尺寸（宽x高）</label>
+          <div class="d-row">
+            <input class="inp" id="customSize" placeholder="如 1024x1024">
+            <button class="d-btn" id="btnCustomSize">应用</button>
+          </div>
+        </div>
+        <div class="d-row">
+          <div class="d-sec">
+            <label>生成数量 <span class="preset-tag" id="countHint"></span></label>
+            <select class="inp" id="count">
+              <option value="1">1 张</option><option value="2">2 张</option>
+              <option value="3">3 张</option><option value="4">4 张</option>
+            </select>
+          </div>
+          <div class="d-sec">
+            <label>输出格式</label>
+            <select class="inp" id="format">
+              <option value="">跟随模型</option>
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+            </select>
+          </div>
+        </div>
+        <div class="d-row">
+          <div class="d-sec">
+            <label>质量</label>
+            <select class="inp" id="quality">
+              <option value="">跟随模型</option>
+              <option value="auto">auto 自动</option>
+              <option value="low">low 低</option>
+              <option value="medium">medium 中</option>
+              <option value="high">high 高</option>
+            </select>
+          </div>
+          <div class="d-sec">
+            <label>背景</label>
+            <select class="inp" id="background">
+              <option value="">跟随模型</option>
+              <option value="auto">auto 自动</option>
+              <option value="transparent">transparent 透明</option>
+              <option value="opaque">opaque 不透明</option>
+            </select>
+          </div>
+        </div>
+        <div class="d-sec" id="secComplexity" style="display:none;">
+          <label for="complexity">规划复杂度</label>
+          <select class="inp" id="complexity" aria-describedby="complexityHint">
+            <option value="">不指定（跟随模型默认）</option>
+            <option value="low">low 低</option>
+            <option value="medium">medium 中</option>
+            <option value="high">high 高</option>
+          </select>
+          <div class="d-hint" id="complexityHint">复杂度控制规划程度，质量控制渲染细节。不指定时不发送此参数。</div>
+        </div>
+        <div class="d-sec" id="secResponseFormat">
+          <label>返回格式 <span class="preset-tag">省流量/防外链</span></label>
+          <select class="inp" id="responseFormat">
+            <option value="">跟随供应商默认</option>
+            <option value="url">url（外链地址，体积小、有时限）</option>
+            <option value="b64_json">b64_json（内联返回，不泄露外链）</option>
+          </select>
+          <div class="d-hint">部分中转站默认回外链 URL；选 b64_json 可让画布拿内联图。流式（SSE）下部分站点会强制回 url。</div>
+        </div>
+        <div class="d-sec" id="secStream">
+          <label>流式返回 <span class="preset-tag">SSE</span></label>
+          <select class="inp" id="streamMode">
+            <option value="">关闭（普通同步请求）</option>
+            <option value="1">开启（边生成边接收）</option>
+          </select>
+          <div class="d-hint">仅文生图可用；上游明确不支持流式时回退，读取中断不会重新生图。</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="d-sec fold" id="secBatch">
+      <summary>批量与超生成</summary>
+      <div class="fold-body">
+        <div class="d-sec">
+          <label>批量比例 <span class="preset-tag">多任务</span></label>
+          <div class="batch-tabs" id="batchRatioChips"></div>
+          <label class="batch-row">
+            <input type="checkbox" id="batchMode"> 启用批量：按所选比例各生成一张
+          </label>
+          <div class="d-hint">批量模式下一次入队多个任务，自动换算当前档位尺寸。</div>
+        </div>
+        <div class="d-sec">
+          <label>超生成 <span class="preset-tag">防拒绝</span></label>
+          <label class="batch-row">
+            <input type="checkbox" id="ogMode"> 批量补跑：成功达标后自动终止剩余排队
+          </label>
+          <div class="og-fields" id="ogFields" style="display:none;">
+            <span>尝试</span><input class="inp og-num" id="ogAttempts" type="number" min="1" max="100" step="1" value="20" inputmode="numeric"><span>张</span>
+            <span class="og-gap">目标</span><input class="inp og-num" id="ogTarget" type="number" min="1" max="100" step="1" value="5" inputmode="numeric"><span>张</span>
+          </div>
+          <div class="d-hint">一次入队 N 个相同任务；每成功一张计数，达到目标后立即终止剩余排队（未开始的任务不产生费用）。</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="d-sec fold" id="secPrompt" open>
+      <summary>提示词</summary>
+      <div class="fold-body">
+        <div class="d-sec">
+          <label>负面提示词</label>
+          <textarea class="inp" id="negative" placeholder="如：多余衣物、文字、水印、变形手指"></textarea>
+          <div class="d-hint warn-hint" id="negativeHint" style="display:none;">当前供应商不支持负面提示词，这里的内容不会发送。需要排除的内容请直接写进正向提示词（如「不要文字、水印」）。</div>
+        </div>
+        <div class="d-sec">
+          <label>方案样板</label>
+          <button class="d-btn" id="btnOpenTemplates" type="button"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="13" rx="3.2"/><path d="M8 21h10a3 3 0 0 0 3-3V8"/></svg><span class="lbl">打开方案样板</span></button>
+          <div class="d-hint">浏览 / 搜索 / 预览「提示词仓库」样板，点「使用」自动填入正向与负面提示词。</div>
+          <div class="prompt-lib-chips" id="quickChips"></div>
+          <div class="d-hint">最近使用（自动记录 8 条，点击回填）</div>
+          <div class="prompt-lib-chips" id="recentChips"></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="d-sec fold video-only-panel" id="videoPanel" style="display:none;" open>
+      <summary>视频设置</summary>
+      <div class="fold-body">
+        <div class="d-sec"><label>视频模式</label><select class="inp" id="videoMode"><option value="txt2video">文生视频</option><option value="img2video">图片生视频</option></select></div>
+        <div class="d-sec"><label>视频模型</label><select class="inp" id="videoModel"></select><input class="inp" id="videoCustomModel" placeholder="自定义视频模型名…" style="display:none;margin-top:6px;"></div>
+        <div class="d-row">
+          <div class="d-sec"><label>时长</label><select class="inp" id="videoSeconds"></select></div>
+          <div class="d-sec"><label>比例</label><select class="inp" id="videoAspectRatio"></select></div>
+          <div class="d-sec"><label>分辨率</label><select class="inp" id="videoResolution"></select></div>
+        </div>
+        <div class="d-hint">支持文生视频和图片生视频；一次生成 1 个结果。实际可用性以接口返回为准。</div>
+      </div>
+    </details>
+
+    <details class="d-sec fold" id="secPreset">
+      <summary>参数预设 <span class="preset-tag">配方</span></summary>
+      <div class="fold-body">
+        <select class="inp" id="presetSelect"></select>
+        <div class="d-row preset-row">
+          <button class="d-btn" id="btnPresetSave"><span class="lbl">保存当前</span></button>
+          <button class="d-btn" id="btnPresetApply"><span class="lbl">应用</span></button>
+        </div>
+        <div class="d-row preset-row">
+          <button class="d-btn ghost" id="btnPresetDel">删除</button>
+          <button class="d-btn ghost" id="btnPresetExport"><span class="lbl">导出</span></button>
+          <button class="d-btn ghost" id="btnPresetImport"><span class="lbl">导入</span></button>
+          <input type="file" id="presetImportFile" accept=".json" style="display:none;">
+        </div>
+        <div class="d-hint">保存当前全部参数为命名配方，一键复用；可导出 JSON 备份/分享。</div>
+      </div>
+    </details>
+  </div>
+</aside>
+
+<!-- ================= 统一控制台：素材库 ================= -->
+<aside class="drawer" id="drawerLib">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.4"/><path d="M4 16.2l4.6-4.4 3.6 3.4 3.4-3.2L20 16"/><circle cx="9" cy="9.2" r="1.4"/></svg>素材库</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab" data-go="params">参数</button>
+    <button class="d-tab active" data-go="lib">素材</button>
+    <button class="d-tab" data-go="overview">总览</button>
+    <button class="d-tab" data-go="settings">设置</button>
+    <button class="d-tab" data-go="templates">样板</button>
+    <button class="d-tab" data-go="gallery">图库</button>
+  </nav>
+  <div class="drawer-body">
+    <div class="d-group-title">画布数据</div>
+    <div class="d-sec card-group">
+      <div class="lib-tools">
+        <button class="d-btn ghost" id="btnClearHist">清空历史</button>
+        <button class="d-btn ghost" id="btnExportCanvas"><span class="lbl">导出画布</span></button>
+        <button class="d-btn ghost" id="btnImportCanvas"><span class="lbl">导入画布</span></button>
+        <input type="file" id="canvasImportFile" accept=".json" style="display:none;">
+      </div>
+      <div class="lib-tools">
+        <button class="d-btn danger" id="btnClearCanvas"><span class="lbl">清空画布</span></button>
+        <button class="d-btn ghost" id="btnClearByState"><span class="lbl">清理死卡</span></button>
+      </div>
+      <div class="lib-tools">
+        <button class="d-btn primary" id="btnPaintLocal"><span class="lbl">选本机图片做局部修改</span></button>
+      </div>
+      <div class="d-hint">最近 30 张，原图保存在本机。长按任意素材也能直接进局部修改。</div>
+    </div>
+    <div class="d-group-title">历史素材</div>
+    <div class="d-sec">
+      <input class="inp" id="histSearch" placeholder="搜索提示词/模型/日期…">
+      <label class="batch-row"><input type="checkbox" id="histFavOnly"> 只看收藏</label>
+    </div>
+    <div class="lib-grid" id="libGrid"></div>
+  </div>
+</aside>
+
+<!-- ================= 统一控制台：画布总览 ================= -->
+<aside class="drawer" id="drawerOverview">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>画布总览</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab" data-go="params">参数</button>
+    <button class="d-tab" data-go="lib">素材</button>
+    <button class="d-tab active" data-go="overview">总览</button>
+    <button class="d-tab" data-go="settings">设置</button>
+    <button class="d-tab" data-go="templates">样板</button>
+    <button class="d-tab" data-go="gallery">图库</button>
+  </nav>
+  <div class="ov-summary" id="taskSummary"></div>
+  <div class="ov-filter" id="ovFilter"></div>
+  <div class="drawer-body" id="overviewList"></div>
+</aside>
+
+<!-- ================= 统一控制台：连接设置 ================= -->
+<aside class="drawer" id="drawerSettings">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.1"/><path d="M12 3.4v2.6M12 18v2.6M4.6 12H3M21 12h-1.6M6.7 6.7l1.8 1.8M15.5 15.5l1.8 1.8M17.3 6.7l-1.8 1.8M8.5 15.5l-1.8 1.8"/></svg>连接设置</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab" data-go="params">参数</button>
+    <button class="d-tab" data-go="lib">素材</button>
+    <button class="d-tab" data-go="overview">总览</button>
+    <button class="d-tab active" data-go="settings">设置</button>
+    <button class="d-tab" data-go="templates">样板</button>
+    <button class="d-tab" data-go="gallery">图库</button>
+  </nav>
+  <div class="drawer-body settings-body">
+    <nav class="d-jump" aria-label="设置区块快速跳转">
+      <button type="button" data-jump="secProfile">档案</button>
+      <button type="button" data-jump="secImageSvc">生图服务</button>
+      <button type="button" data-jump="secChatSvc">优化服务</button>
+      <button type="button" data-jump="secVerify">校验保存</button>
+    </nav>
+    <div class="settings-status-card">
+      <div class="settings-status-main">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connText">未验证</span>
+      </div>
+      <div class="d-hint" id="concurrencyHint" role="status">本地并发：查询中；供应商账户并发：未核实</div>
+      <button class="d-btn ghost" id="btnConcurrencyRefresh" type="button">刷新并发状态</button>
+      <div class="settings-status-source" id="cfgSourceHint">配置来源：加载中（能力参数）· 模型与价格以当前站点目录为准</div>
+      <div class="settings-usage-line" id="usageLine" style="display:none;align-items:center;gap:8px;margin-top:8px;">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M14.6 9.4a2.9 2.9 0 0 0-2.6-1.4c-1.5 0-2.5.8-2.5 2s1 1.7 2.6 2 2.6.8 2.6 2-1.1 2-2.7 2a3 3 0 0 1-2.7-1.5M12 6.2v11.6"/></svg><span id="usageText">余额：—</span>
+        <button class="d-btn ghost" id="btnUsageRefresh" type="button" style="margin-left:auto;"><span class="lbl">查询余额</span></button>
+      </div>
+    </div>
+
+    <details class="settings-section" style="padding:10px 12px;">
+      <summary style="cursor:pointer;font-weight:600;">65535 中转站能力说明（同步 / SSE / 原生任务）</summary>
+      <div class="d-hint" style="margin-top:8px;line-height:1.65;">
+        ① <b>三种调用方式</b>：OpenAI 兼容同步（/v1/images/generations、/v1/images/edits，multipart 参考图直传）· SSE 流式（生成时把「流式返回」设为开启，服务端读 text/event-stream）· 原生任务 API（预设「65535 原生任务 API（图片）」，异步 pending→running→done，终态保留 24 小时）。<br>
+        ② <b>返回格式取舍</b>：平台默认回外链地址（形如 task1.65535.space/jobs/&lt;id&gt;/&lt;n&gt;.png，24 小时有效）；选 b64_json 或走原生任务会拿内联图，画布自动落盘、不暴露外链域名。<br>
+        ③ <b>实测限制</b>：请求体上限 32 MiB（参考图 base64 后约 1.34 倍，合计超约 23 MB 会 413，改用「65535 OpenAI 兼容（参考图直传）」）；edits 忽略 n（只回 1 张）；SSE 下平台强制回 url，画布会自动下载。<br>
+        ④ <b>幂等</b>：相同 Idempotency-Key 重复提交复用同一任务、不重复扣费。<br>
+        ⑤ <b>失败回落</b>：流式请求失败会自动退回普通同步请求，任务不会因此中断。
+      </div>
+    </details>
+
+    <div class="settings-section settings-profile-section" id="secProfile">
+      <div class="settings-section-head">
+        <div>
+          <b>API 配置档案</b>
+          <span>保存和切换不同站点的连接信息</span>
+        </div>
+        <span class="settings-badge">本机</span>
+      </div>
+      <select class="inp" id="apiProfileSelect" aria-label="选择 API 配置档案">
+        <option value="">当前临时配置</option>
+      </select>
+      <div class="d-row api-profile-actions">
+        <button class="d-btn" id="apiProfileSave" type="button">保存新档案</button>
+        <button class="d-btn ghost" id="apiProfileOverwrite" type="button">覆盖当前</button>
+        <button class="d-btn ghost" id="apiProfileDelete" type="button">删除档案</button>
+      </div>
+      <div class="d-hint">切换档案只恢复已保存配置，不会自动拉取模型。</div>
+    </div>
+
+    <div class="settings-section settings-image-section" id="secImageSvc">
+      <div class="settings-section-head">
+        <div>
+          <b>生图服务</b>
+          <span>生成、编辑和涂抹重绘使用的接口</span>
+        </div>
+        <span class="settings-badge image">IMAGE</span>
+      </div>
+      <div class="d-sec">
+        <label>服务预设</label>
+        <select class="inp" id="providerPreset"></select>
+      </div>
+      <div class="d-sec">
+        <label>API Key</label>
+        <div class="key-row">
+          <input class="inp" type="password" id="apiKey" placeholder="sk-xxx" autocomplete="off">
+          <button class="d-btn key-toggle" id="btnToggleKey" aria-label="显示或隐藏 Key"><svg class="ic eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.6 12S6 6.4 12 6.4 21.4 12 21.4 12 18 17.6 12 17.6 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.8"/></svg><svg class="ic eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l16 16"/><path d="M9.6 5.9A9.6 9.6 0 0 1 12 5.6c6 0 9.4 6.4 9.4 6.4a17 17 0 0 1-3.1 3.8M6.3 7.7A16.6 16.6 0 0 0 2.6 12S6 18.4 12 18.4a9.7 9.7 0 0 0 4-1"/></svg></button>
+        </div>
+      </div>
+      <div class="d-sec">
+        <label>Base URL</label>
+        <input class="inp" id="apiBase" placeholder="https://example.com/v1">
+      </div>
+      <div class="d-sec">
+        <label>代理访问令牌 <em>可选</em></label>
+        <input class="inp" id="proxyToken" placeholder="本地直连可留空" autocomplete="off">
+        <div class="settings-inline-status" id="privateProxyHint">本机/局域网 API：正在读取服务器代理状态…</div>
+        <button class="d-btn ghost" id="btnRefreshProxyStatus"><span class="lbl">刷新本机 API 状态</span></button>
+      </div>
+      <div class="d-sec settings-model-field">
+        <label>生图模型</label>
+        <select class="inp" id="model"></select>
+        <input class="inp" id="customModel" placeholder="自定义模型名…" style="display:none;margin-top:6px;">
+        <button class="d-btn ghost" id="btnRefreshModels"><span class="lbl">从当前站点拉取模型</span></button>
+      </div>
+    </div>
+
+    <div class="settings-section settings-chat-section" id="secChatSvc">
+      <div class="settings-section-head">
+        <div>
+          <b>提示词优化服务</b>
+          <span>用于 AI 优化提示词，可留空复用生图配置</span>
+        </div>
+        <span class="settings-badge chat">CHAT</span>
+      </div>
+      <div class="d-sec">
+        <label>优化 API Key</label>
+        <div class="key-row">
+          <input class="inp" type="password" id="chatKey" placeholder="留空则复用生图 Key" autocomplete="off">
+          <button class="d-btn key-toggle" id="btnToggleChatKey" aria-label="显示或隐藏 Key"><svg class="ic eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.6 12S6 6.4 12 6.4 21.4 12 21.4 12 18 17.6 12 17.6 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.8"/></svg><svg class="ic eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l16 16"/><path d="M9.6 5.9A9.6 9.6 0 0 1 12 5.6c6 0 9.4 6.4 9.4 6.4a17 17 0 0 1-3.1 3.8M6.3 7.7A16.6 16.6 0 0 0 2.6 12S6 18.4 12 18.4a9.7 9.7 0 0 0 4-1"/></svg></button>
+        </div>
+      </div>
+      <div class="d-sec">
+        <label>优化 Base URL</label>
+        <input class="inp" id="chatBase" placeholder="留空则复用生图 Base URL">
+      </div>
+      <div class="d-sec">
+        <label>优化模型</label>
+        <select class="inp" id="chatModel"></select>
+        <input class="inp" id="chatCustomModel" placeholder="自定义优化模型名…" style="display:none;margin-top:6px;">
+      </div>
+    </div>
+
+    <div class="settings-section settings-actions-section" id="secVerify">
+      <div class="settings-section-head">
+        <div>
+          <b>验证与保存</b>
+          <span>确认连接后再保存到当前浏览器</span>
+        </div>
+      </div>
+      <div class="settings-action-grid">
+        <button class="d-btn" id="btnCheckApi"><span class="lbl">校验生图</span></button>
+        <button class="d-btn" id="btnCheckChatApi"><span class="lbl">校验优化</span></button>
+      </div>
+      <button class="d-btn primary settings-save-btn" id="btnSaveCfg"><span class="lbl">保存当前配置</span></button>
+      <label class="settings-toggle">
+        <input type="checkbox" id="rememberKey"> <span>在本机记住 Key</span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" id="linkToggle" checked> <span>显示卡片血缘连线</span>
+      </label>
+      <div class="check-result" id="apiCheckResult"></div>
+      <div class="check-result" id="chatApiCheckResult"></div>
+    </div>
+
+    <div class="settings-help-card">
+      <b>使用提示</b>
+      <p>Key 仅保存在本机浏览器 localStorage。图片请求最长等待 600 秒，最多同时进行 3 个生图任务。</p>
+    </div>
+  </div>
+</aside>
+
+<!-- ================= 统一控制台：方案样板 ================= -->
+<aside class="drawer" id="drawerTemplates">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="13" rx="3.2"/><path d="M8 21h10a3 3 0 0 0 3-3V8"/></svg>方案样板</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab" data-go="params">参数</button>
+    <button class="d-tab" data-go="lib">素材</button>
+    <button class="d-tab" data-go="overview">总览</button>
+    <button class="d-tab" data-go="settings">设置</button>
+    <button class="d-tab active" data-go="templates">样板</button>
+    <button class="d-tab" data-go="gallery">图库</button>
+  </nav>
+  <div class="drawer-body tpl-body">
+    <iframe class="tpl-frame" id="tplFrame" title="方案样板选择" src="页面/方案样板选择.html?v=catui2"></iframe>
+  </div>
+</aside>
+
+<!-- ================= 统一控制台：参考图库 ================= -->
+<aside class="drawer" id="drawerGallery">
+  <div class="drawer-head"><b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="13" rx="3"/><path d="M19 8.4v9.1a2.5 2.5 0 0 1-2.5 2.5H7.4"/><circle cx="8" cy="9.6" r="1.3"/><path d="M3.6 15.6l3.6-3.2 2.9 2.7 2.5-2.2 3.4 3"/></svg>参考图库</b><button class="x" data-close aria-label="关闭">✕</button></div>
+  <nav class="d-tabs" aria-label="控制台导航">
+    <button class="d-tab" data-go="params">参数</button>
+    <button class="d-tab" data-go="lib">素材</button>
+    <button class="d-tab" data-go="overview">总览</button>
+    <button class="d-tab" data-go="settings">设置</button>
+    <button class="d-tab" data-go="templates">样板</button>
+    <button class="d-tab active" data-go="gallery">图库</button>
+  </nav>
+  <div class="drawer-body tpl-body">
+    <iframe class="tpl-frame" id="galFrame" title="参考图库选择"></iframe>
+  </div>
+</aside>
+
+<div class="mask" id="mask"></div>
+
+<!-- ================= 预览 ================= -->
+<div class="preview" id="preview">
+  <div class="preview-top"><span id="previewMeta"></span><button class="x" id="previewClose" aria-label="关闭">✕</button></div>
+  <div class="preview-img"><img id="previewImg" alt=""><video id="previewVideo" controls playsinline preload="metadata" style="display:none;"></video></div>
+  <div class="preview-actions">
+    <button id="pvDl" class="dl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6v11M7.6 10.4L12 14.8l4.4-4.4M4.4 19.4h15.2"/></svg><span class="lbl">下载</span></button>
+    <button id="pvRef"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.4"/><path d="M12 8.6v6.8M8.6 12h6.8"/></svg><span class="lbl">设为参考</span></button>
+    <button id="pvPaint"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L20 8l-4-4L4 16v4Z"/><path d="M14 6l4 4"/></svg><span class="lbl">局部修改</span></button>
+    <button id="pvReuse"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.6"/><path d="M20 4.4v4.2h-4.2"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.4"/><path d="M4 19.6v-4.2h4.2"/></svg><span class="lbl">复用参数</span></button>
+  </div>
+</div>
+
+<!-- ================= 长按菜单 ================= -->
+<div class="ctx" id="ctx"></div>
+
+<!-- ================= 想法 bottom sheet ================= -->
+<div class="sheet-mask" id="sheetMask"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <b><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9L5.2 10.3l4.9-1.9z"/></svg>AI 提示词助手</b>
+  <div class="vision-row" id="visionRow" style="display:none;">
+    <div class="vision-thumbs" id="visionThumbs"></div>
+    <button class="vr-pick" id="visionPick" title="添加图片" aria-label="添加图片">＋</button>
+    <div class="vr-info">
+      <label class="batch-row" style="margin-top:0;">
+        <input type="checkbox" id="visionEnable" checked> 发送图片给 AI 识别
+      </label>
+      <div class="vr-label" id="visionLabel"></div>
+    </div>
+  </div>
+  <textarea class="inp" id="idea" placeholder="用大白话描述你想要的效果…" style="min-height:96px;"></textarea>
+  <div class="sheet-actions">
+    <select class="inp" id="promptLang" style="flex:0 0 116px;">
+      <option value="en">英文</option>
+      <option value="zh">中文</option>
+      <option value="mix">中英夹杂</option>
+    </select>
+    <button class="d-btn primary" id="btnOptimizeGo" style="flex:1;">优化并回填</button>
+  </div>
+  <div class="d-hint">优化结果会回填到下方输入框，可手动微调后再生成。</div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ================= 提示词大编辑 ================= -->
+<div class="prompt-editor" id="promptEditor">
+  <div class="prompt-editor-box">
+    <div class="prompt-editor-head">
+      <div>
+        <b>编辑提示词</b>
+        <span id="promptEditorMode">文生图 · 正向提示词与负面提示词</span>
+      </div>
+      <button class="x" id="promptEditorClose" type="button" aria-label="关闭提示词编辑">✕</button>
+    </div>
+    <div class="prompt-editor-body">
+      <div class="prompt-editor-field prompt-editor-positive">
+        <div class="prompt-editor-label"><label for="promptEditorText">正向提示词</label><span id="promptEditorCount">0 字</span></div>
+        <textarea class="inp" id="promptEditorText" spellcheck="false" placeholder="描述你想生成或修改的画面…"></textarea>
+      </div>
+      <div class="prompt-editor-field prompt-editor-negative">
+        <div class="prompt-editor-label"><label for="promptEditorNegative">负面提示词</label><span id="promptEditorNegativeCount">0 字</span></div>
+        <textarea class="inp" id="promptEditorNegative" spellcheck="false" placeholder="可选：文字、水印、畸形手指、多余物体…"></textarea>
+      </div>
+      <div class="d-hint">取消不会改动底部输入框；应用后才会回填当前提示词。</div>
+    </div>
+    <div class="prompt-editor-actions">
+      <button class="d-btn ghost" id="promptEditorCancel" type="button">取消</button>
+      <button class="d-btn" id="promptEditorApply" type="button">应用</button>
+      <button class="d-btn primary" id="promptEditorGenerate" type="button">应用并生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 任务详情 ================= -->
+<div class="dmodal" id="detailModal">
+  <div class="dmodal-box">
+    <div class="dmodal-head"><b>任务参数详情</b><button class="x" id="detailClose" aria-label="关闭">✕</button></div>
+    <div class="dmodal-body"><pre id="detailText"></pre></div>
+    <div class="dmodal-actions">
+      <button class="d-btn" id="detailCopy">复制参数</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 命名 ================= -->
+<div class="dmodal" id="nameModal">
+  <div class="dmodal-box">
+    <div class="dmodal-head"><b>保存参数预设</b><button class="x" id="nameClose" aria-label="关闭">✕</button></div>
+    <div class="dmodal-body">
+      <input class="inp" id="nameInput" placeholder="预设名称，如：换装工作流 / 脸部基准 / 高清修复">
+    </div>
+    <div class="dmodal-actions">
+      <button class="d-btn ghost" id="nameCancel">取消</button>
+      <button class="d-btn primary" id="nameOk">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 视觉图源选择 ================= -->
+<div class="dmodal" id="visionPickModal">
+  <div class="dmodal-box">
+    <div class="dmodal-head"><b>选择发送给 AI 的图片</b><button class="x" id="visionPickClose" aria-label="关闭">✕</button></div>
+    <div class="dmodal-body" id="visionPickList"></div>
+  </div>
+</div>
+
+<!-- ================= 涂抹重绘 ================= -->
+<div class="paint-wrap" id="paintWrap">
+  <div class="paint-head">
+    <b>局部修改</b>
+    <span id="paintMeta"></span>
+    <button class="x" id="paintClose" aria-label="关闭">✕</button>
+  </div>
+  <div class="paint-canvas" id="paintCanvasBox">
+    <canvas id="paintCanvas"></canvas>
+  </div>
+  <div class="paint-tip">涂抹要修改的区域（高亮处会被重绘），其余部分保持不动；描述新内容后开始。</div>
+  <div class="paint-tools">
+    <button class="tbtn on" id="paintBrush">涂抹</button>
+    <button class="tbtn" id="paintEraser">橡皮</button>
+    <button class="tbtn" id="paintUndo">撤销</button>
+    <button class="tbtn" id="paintRedo">重做</button>
+    <button class="tbtn" id="paintClear">清空</button>
+    <span class="size-ctl">笔<button id="paintMinus">−</button><b id="paintSizeVal">24</b><button id="paintPlus">＋</button></span>
+    <button class="tbtn" id="paintMaskView" title="只看蒙版：白=会改，黑=保留">蒙版</button>
+    <button class="tbtn" id="paintFileBtn" title="选择本机图片做局部修改">换图</button>
+    <span class="zoom-ctl">视图<button id="paintZoomOut">−</button><b id="paintZoomVal">100%</b><button id="paintZoomIn">＋</button><button id="paintZoomFit" title="回到适应屏幕">适应</button></span>
+  </div>
+  <div class="paint-fine">
+    <label>边缘羽化 <b id="paintFeatherVal">1</b><input type="range" id="paintFeather" min="0" max="8" step="1" value="1"></label>
+    <label>范围扩张 <b id="paintExpandVal">+1</b><input type="range" id="paintExpand" min="-3" max="6" step="1" value="1"></label>
+    <label class="sel">尺寸<select id="paintSizePolicy"><option value="original">原尺寸（推荐）</option><option value="fit">按档位放大</option></select></label>
+    <label class="sel">张数<select id="paintCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label class="og"><input type="checkbox" id="paintOvershoot">超生成</label>
+    <span class="og-fields" id="paintOGFields" hidden>目标<input type="number" id="paintOGTarget" min="1" max="30" step="1" value="2" inputmode="numeric">尝试<input type="number" id="paintOGAttempts" min="1" max="50" step="1" value="5" inputmode="numeric"></span>
+    <span class="spacer"></span>
+    <button class="tbtn go" id="paintGo">开始重绘</button>
+  </div>
+  <div class="paint-foot">
+    <div class="prompt-box">
+      <textarea id="paintPrompt" rows="1" placeholder="描述涂抹区域要变成什么…"></textarea>
+    </div>
+  </div>
+</div>
+<input type="file" id="paintFile" accept="image/*" style="display:none;">
+
+<div id="bootBlock" style="display:none;">
+  <div class="boot-box">
+    <div class="boot-cat"><img src="img/cat-mascot-ui.png" alt="" onerror="this.onerror=null;this.style.visibility='hidden'"></div>
+    <div class="boot-title">需要先启动生图服务器</div>
+    <div class="boot-steps" aria-label="启动步骤">
+      <div><b>1</b> 在 Pydroid3 或 Termux 中运行服务器</div>
+      <div><b>2</b> 用浏览器打开本页面地址</div>
+      <div><b>3</b> 点击下方按钮重新检测</div>
+    </div>
+    <div class="boot-cmd">python 生图服务器.py</div>
+    <div class="boot-hint">本工具需要服务器提供代理、缩略图和提示词库，不能直接双击 HTML 文件运行。</div>
+    <button class="boot-btn" id="bootReload" type="button">我已启动，重试</button>
+  </div>
+</div>
+
+<script type="module" src="js/画布版.js?v=catui15"></script>
+<script type="module" src="js/canvas/ui-nav.js?v=catui15"></script>
+<script>
+/* 控制台标签带：切换抽屉时不做滑入动画，让五个页面看起来像同一个面板换页 */
+document.querySelectorAll('.d-tab').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var root = document.documentElement;
+    root.classList.add('tab-swap');
+    setTimeout(function(){ root.classList.remove('tab-swap'); }, 120);
+  });
+});
+</script>
+</body>
+</html>

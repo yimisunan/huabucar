@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FAF5EF">
+<title>参考图库 · 姿势 / 服装 / 人像</title>
+<style>
+/* ── 设计令牌：与 图片生成画布版 / css/画布版.css / 方案样板选择 同源 ── */
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('../fonts/inter-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('../fonts/inter-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('../fonts/inter-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('../fonts/inter-latin-700-normal.woff2') format('woff2');}
+:root{
+  --bg:#FAF5EF; --bg-deep:#F3E9DE; --panel:#FFFFFF; --panel2:#F8F0E8; --card:#FFFFFF;
+  --border:rgba(120,92,72,.14); --border2:rgba(120,92,72,.24);
+  --text:#3A2E28; --muted:#8E7C6E;
+  --accent:#EF8558; --accent-ink:#C05F35; --accent-soft:rgba(239,133,88,.12);
+  --mint:#7FB49B;
+  --grad:linear-gradient(135deg,#F8A177,#EE7C52);
+  --ok:#4E9E78; --danger:#D64C36; --warn:#D2922E;
+  --radius:14px; --radius-2:18px;
+  --shadow:0 6px 20px rgba(122,90,66,.10); --shadow-lg:0 14px 40px rgba(122,90,66,.16);
+  --topbar-h:54px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Inter",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px; line-height:1.5; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; height:100%;
+}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;padding:0;}
+input{font-family:inherit;color:var(--text);}
+svg{display:block;}
+.ic{width:18px;height:18px;flex:0 0 auto;}
+
+.aurora{position:fixed;left:0;right:0;top:0;height:46vh;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(58% 58% at 18% 0%,rgba(239,133,88,.22),transparent 62%),
+    radial-gradient(48% 48% at 84% 6%,rgba(255,214,178,.20),transparent 62%),
+    radial-gradient(42% 42% at 55% -6%,rgba(127,180,155,.14),transparent 62%);
+  filter:blur(6px);}
+
+/* ── 顶栏 ── */
+.topbar{position:relative;z-index:5;min-height:var(--topbar-h);display:flex;align-items:center;gap:10px;
+  padding:9px 12px;background:rgba(250,245,239,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);flex:0 0 auto;}
+.tb-left{display:flex;align-items:center;gap:9px;min-width:0;flex:1;}
+.tb-title{min-width:0;}
+.tb-title b{display:block;font-size:16px;font-weight:700;letter-spacing:.2px;}
+.tb-title span{display:block;font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.icon-btn{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--panel2);border:1px solid var(--border);color:var(--muted);
+  transition:transform .12s var(--ease),border-color .16s,color .16s,background .16s;}
+.icon-btn:active{transform:scale(.92);}
+.icon-btn.on{color:var(--accent-ink);border-color:rgba(239,133,88,.42);background:var(--accent-soft);}
+.icon-btn .ic{width:17px;height:17px;}
+
+/* ── 筛选区（吸顶） ── */
+.filters{position:relative;z-index:4;padding:10px 12px 8px;flex:0 0 auto;
+  background:linear-gradient(180deg,rgba(250,245,239,.98),rgba(250,245,239,.93));
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);}
+.search-row{display:flex;align-items:center;gap:8px;height:40px;background:var(--panel2);
+  border:1px solid var(--border);border-radius:12px;padding:0 10px;
+  transition:border-color .16s,box-shadow .16s;}
+.search-row:focus-within{border-color:rgba(239,133,88,.55);box-shadow:0 0 0 3px rgba(239,133,88,.12);}
+.search-row .ic{width:16px;height:16px;color:var(--muted);}
+.search-row input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:14px;}
+.search-row input::placeholder{color:#B7A597;}
+.s-clear{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;color:var(--muted);
+  background:rgba(120,92,72,.07);display:none;}
+.s-clear.on{display:grid;}
+.s-clear .ic{width:13px;height:13px;}
+
+.seg{display:flex;gap:6px;margin-top:9px;background:rgba(120,92,72,.06);border-radius:12px;padding:3px;}
+.seg button{flex:1;height:32px;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted);
+  transition:background .18s var(--ease),color .18s,box-shadow .18s;}
+.seg button.on{background:var(--panel);color:var(--accent-ink);box-shadow:0 2px 8px rgba(122,90,66,.10);}
+.seg button:active{transform:scale(.97);}
+
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto;height:28px;padding:0 11px;border-radius:999px;font-size:12.5px;
+  background:var(--panel);border:1px solid var(--border);color:var(--muted);white-space:nowrap;
+  transition:background .16s,color .16s,border-color .16s,transform .12s var(--ease);}
+.chip:active{transform:scale(.95);}
+.chip.on{background:var(--accent-soft);border-color:rgba(239,133,88,.42);color:var(--accent-ink);font-weight:600;}
+
+/* ── 网格 ── */
+main{position:relative;z-index:1;flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 10px calc(96px + env(safe-area-inset-bottom));overscroll-behavior:contain;}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}}
+
+.card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column;
+  animation:pop .28s var(--ease) both;}
+@keyframes pop{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.card:active{transform:scale(.985);}
+.card .ph{position:relative;width:100%;aspect-ratio:4/5;background:linear-gradient(135deg,var(--panel2),var(--bg-deep));overflow:hidden;}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .28s var(--ease);}
+.card .ph img.ok{opacity:1;}
+.card .nm{padding:6px 8px 7px;font-size:11.5px;line-height:1.35;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;}
+.card .tag{position:absolute;left:6px;top:6px;height:19px;padding:0 7px;border-radius:7px;
+  font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;
+  background:rgba(255,255,255,.92);color:var(--muted);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.card .zoom{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  background:rgba(255,255,255,.9);color:var(--muted);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.card .zoom .ic{width:14px;height:14px;}
+.card .chk{position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(255,255,255,.94);border:1.5px solid var(--border2);
+  color:transparent;transition:background .16s,border-color .16s,color .16s,transform .16s var(--ease);}
+.card .chk .ic{width:13px;height:13px;stroke-width:3;}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(239,133,88,.35),var(--shadow);}
+.card.sel .chk{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.06);}
+.card .ph .shim{position:absolute;inset:0;background:
+  linear-gradient(100deg,rgba(248,240,232,0) 30%,rgba(255,255,255,.55) 50%,rgba(248,240,232,0) 70%);
+  background-size:220% 100%;animation:shim 1.4s linear infinite;}
+@keyframes shim{from{background-position:120% 0;}to{background-position:-20% 0;}}
+
+.notice{padding:28px 18px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;}
+.notice b{display:block;color:var(--text);font-size:15px;margin-bottom:6px;}
+.notice .retry{margin-top:12px;height:34px;padding:0 16px;border-radius:10px;background:var(--panel);
+  border:1px solid var(--border2);font-size:13px;font-weight:600;color:var(--accent-ink);}
+.sentinel{height:1px;}
+
+/* ── 底部动作条 ── */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(122,90,66,.08);}
+.bar-in{display:flex;align-items:center;gap:9px;}
+.sel-strip{display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;}
+.sel-strip::-webkit-scrollbar{display:none;}
+.sel-th{position:relative;width:34px;height:34px;border-radius:9px;overflow:hidden;flex:0 0 auto;
+  border:1px solid var(--border2);background:var(--panel2);}
+.sel-th img{width:100%;height:100%;object-fit:cover;}
+.sel-th i{position:absolute;right:-1px;top:-1px;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:9px;font-style:normal;display:grid;place-items:center;}
+.sel-hint{font-size:12px;color:var(--muted);flex:0 0 auto;}
+.btn{height:38px;border-radius:11px;padding:0 14px;font-size:13.5px;font-weight:600;display:inline-flex;
+  align-items:center;gap:6px;flex:0 0 auto;transition:transform .12s var(--ease),opacity .16s;}
+.btn:active{transform:scale(.96);}
+.btn[disabled]{opacity:.45;pointer-events:none;}
+.btn.ghost{background:var(--panel);border:1px solid var(--border2);color:var(--muted);}
+.btn.primary{background:var(--grad);color:#fff;box-shadow:0 6px 16px rgba(239,133,88,.32);}
+.btn .ic{width:16px;height:16px;}
+
+/* ── 灯箱 ── */
+.lb{position:fixed;inset:0;z-index:60;background:rgba(38,28,22,.86);display:none;
+  flex-direction:column;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.lb.open{display:flex;animation:fade .18s var(--ease);}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+.lb-head{display:flex;align-items:center;gap:10px;padding:10px 12px;color:#fff;flex:0 0 auto;}
+.lb-name{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.92;}
+.lb-x{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.14);}
+.lb-img{flex:1 1 auto;min-height:0;display:grid;place-items:center;padding:0 8px;overflow:hidden;}
+.lb-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;}
+.lb-foot{display:flex;gap:9px;padding:10px 12px calc(12px + env(safe-area-inset-bottom));flex:0 0 auto;}
+.lb-foot .btn{flex:1;justify-content:center;height:42px;}
+.lb-foot .btn.ghost{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);color:#fff;}
+
+.foot-note{padding:2px 4px 14px;font-size:10.5px;color:#B7A597;text-align:center;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="tb-left">
+    <div class="tb-title">
+      <b>参考图库</b>
+      <span id="tbSub">姿势 · 服装 · 人像　（图只作参考，姿势与语义由你的提示词决定）</span>
+    </div>
+  </div>
+  <div class="tb-right">
+    <button class="icon-btn" id="btnSafe" title="安全模式：隐藏性感/内衣类" aria-label="安全模式">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 5 6v5.4c0 4.2 2.9 7.4 7 9.4 4.1-2 7-5.2 7-9.4V6Z"/><path d="M9.2 12.2l2 2 3.6-3.8"/></svg>
+    </button>
+    <button class="icon-btn" id="btnClose" title="关闭" aria-label="关闭">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="filters">
+  <div class="search-row">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.6"/><path d="M16.2 16.2 21 21"/></svg>
+    <input id="q" type="search" placeholder="搜索名称 / 分类 / 角度 / 标签…" autocomplete="off" enterkeyhint="search">
+    <button class="s-clear" id="qClear" aria-label="清空搜索">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="seg" id="seg">
+    <button data-lib="pose" class="on">姿势</button>
+    <button data-lib="costume">服装</button>
+    <button data-lib="portrait">人像</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+</section>
+
+<main id="scroller">
+  <div class="grid" id="grid"></div>
+  <div id="notice"></div>
+  <div class="sentinel" id="sentinel"></div>
+  <div class="foot-note">图片版权归原作者 ギア（姿势/服装/人像）与 たきAI（二次元服装）所有，仅供本机个人参考使用，请勿再分发。</div>
+</main>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="sel-strip" id="selStrip"></div>
+    <span class="sel-hint" id="selHint">未选择</span>
+    <button class="btn ghost" id="btnDownload" disabled title="下载所选原图">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10M8 10.4l4 4 4-4"/><path d="M5 18.4h14"/></svg>下载
+    </button>
+    <button class="btn primary" id="btnAdd" disabled title="加入画布参考图">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5.6v12.8M5.6 12h12.8"/></svg>加入参考
+    </button>
+  </div>
+</div>
+
+<div class="lb" id="lb">
+  <div class="lb-head">
+    <div class="lb-name" id="lbName"></div>
+    <button class="lb-x" id="lbClose" aria-label="关闭预览">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="lb-img"><img id="lbImg" alt=""></div>
+  <div class="lb-foot">
+    <button class="btn ghost" id="lbDownload">下载原图</button>
+    <button class="btn primary" id="lbAdd">加入参考</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ───────────────────────── 配置 ───────────────────────── */
+const RAW = 'https://raw.githubusercontent.com/anhao/ai-pose-gallery-zh/main/';
+const MIRROR = 'https://ai-pose-gallery.anhao.app/';   // 主源失败时的备用域名
+const INDEX = { pose:'../data/gallery/pose.json', costume:'../data/gallery/costume.json', portrait:'../data/gallery/portrait.json' };
+const MAX_SEL = 4;          // 与画布 MAX_REFS 一致
+const BATCH = 60;           // 每批渲染数量
+const SFW_KEY = 'refgallery.sfw';
+
+/* ───────────────────────── 状态 ───────────────────────── */
+const S = {
+  lib: 'pose',
+  data: { pose:null, costume:null, portrait:null },
+  loading: {},
+  q: '', chip: '',
+  filtered: [], shown: 0,
+  sel: [],
+  sfw: localStorage.getItem(SFW_KEY) !== '0'
+};
+
+const $ = id => document.getElementById(id);
+const grid = $('grid'), chips = $('chips'), notice = $('notice'), scroller = $('scroller');
+const selStrip = $('selStrip'), selHint = $('selHint');
+
+/* ───────────────────────── 工具 ───────────────────────── */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'"',"'":'&#39;'}[c])); }
+function abs(p){ return /^https?:/i.test(p) ? p : RAW + String(p).replace(/^\/+/, ''); }
+function mirrorOf(p){ return MIRROR + String(p).replace(/^\/+/, ''); }
+function itemName(it){
+  if (S.lib === 'costume') return it['服装名称'] || it.id;
+  if (S.lib === 'portrait') return it['标题'] || it['发型名称'] || it.id;
+  return it['姿势名称'] || it.id;
+}
+function itemTag(it){
+  if (S.lib === 'costume') return it['分类'] || '';
+  if (S.lib === 'portrait') return it['发长'] || it['分区'] || '';
+  return it['角度'] || it['体系'] || '';
+}
+function itemHay(it){
+  return [it.id, it['体系'], it['分类'], it['姿势编号'], it['姿势名称'], it['角度'],
+          it['服装名称'], (it['标签']||[]).join(' '), it['分区'], it['发长'], it['发型名称'], it['标题']]
+         .filter(Boolean).join(' ').toLowerCase();
+}
+function blocked(it){
+  if (!S.sfw) return false;
+  const s = (it['体系']||'') + (it['分类']||'') + (it['标签']||[]).join('');
+  return /性感|内衣|睡衣|泳装/.test(s);
+}
+function chipValues(list){
+  const key = S.lib === 'costume' ? '分类' : S.lib === 'portrait' ? '分区' : '体系';
+  const seen = [], out = [];
+  list.forEach(it => { const v = it[key]; if (v && seen.indexOf(v) < 0) { seen.push(v); out.push(v); } });
+  return out;
+}
+
+/* ───────────────────────── 数据加载 ───────────────────────── */
+let metaPromise = null;
+function loadMeta(){
+  if (!metaPromise){
+    metaPromise = fetch('../data/gallery/meta.json', { cache:'no-cache' })
+      .then(r => r.ok ? r.json() : null).catch(() => null);
+  }
+  return metaPromise;
+}
+
+async function loadLib(lib){
+  if (S.data[lib]) return S.data[lib];
+  if (S.loading[lib]) return S.loading[lib];
+  S.loading[lib] = (async () => {
+    const res = await fetch(INDEX[lib], { cache:'force-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const arr = await res.json();
+    S.data[lib] = Array.isArray(arr) ? arr : [];
+    return S.data[lib];
+  })();
+  try { return await S.loading[lib]; }
+  finally { S.loading[lib] = null; }
+}
+
+/* ───────────────────────── 渲染 ───────────────────────── */
+function renderChips(){
+  const list = S.data[S.lib] || [];
+  const vals = chipValues(list);
+  chips.innerHTML = '';
+  const mk = (label, val) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (S.chip === val ? ' on' : '');
+    b.textContent = label;
+    b.onclick = () => { S.chip = val; renderChips(); applyFilter(); };
+    chips.appendChild(b);
+  };
+  mk('全部', '');
+  vals.forEach(v => mk(v, v));
+}
+
+function applyFilter(){
+  const list = S.data[S.lib] || [];
+  const key = S.lib === 'costume' ? '分类' : S.lib === 'portrait' ? '分区' : '体系';
+  const q = S.q.trim().toLowerCase();
+  S.filtered = list.filter(it => {
+    if (blocked(it)) return false;
+    if (S.chip && it[key] !== S.chip) return false;
+    if (q && itemHay(it).indexOf(q) < 0) return false;
+    return true;
+  });
+  S.shown = 0;
+  grid.innerHTML = '';
+  if (!S.filtered.length){ showNotice('没有匹配的参考图', '换个关键词或切回「全部」试试'); return; }
+  notice.innerHTML = '';
+  renderBatch();
+}
+
+function renderBatch(){
+  const frag = document.createDocumentFragment();
+  const end = Math.min(S.shown + BATCH, S.filtered.length);
+  for (let i = S.shown; i < end; i++){
+    const it = S.filtered[i];
+    frag.appendChild(makeCard(it, i));
+  }
+  S.shown = end;
+  grid.appendChild(frag);
+  if (S.shown >= S.filtered.length) sentinelOff(); else sentinelOn();
+}
+
+function makeCard(it, idx){
+  const card = document.createElement('div');
+  card.className = 'card' + (isSel(it) ? ' sel' : '');
+  card.dataset.key = S.lib + '|' + it.id;
+  card.style.animationDelay = Math.min(idx % BATCH, 12) * 12 + 'ms';
+
+  const ph = document.createElement('div'); ph.className = 'ph';
+  const shim = document.createElement('div'); shim.className = 'shim';
+  const img = document.createElement('img');
+  img.loading = 'lazy'; img.decoding = 'async'; img.alt = '';
+  img.src = abs(it['缩略图']);
+  img.onload = () => { img.classList.add('ok'); shim.remove(); };
+  img.onerror = () => {
+    if (img.dataset.mirror) { shim.remove(); img.style.display = 'none'; return; }
+    img.dataset.mirror = '1';
+    img.src = mirrorOf(it['缩略图']);
+  };
+  ph.append(shim, img);
+
+  const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = itemTag(it);
+
+  const zoom = document.createElement('button');
+  zoom.className = 'zoom'; zoom.title = '查看大图';
+  zoom.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5"/></svg>';
+  zoom.onclick = e => { e.stopPropagation(); openLightbox(it); };
+
+  const chk = document.createElement('span'); chk.className = 'chk';
+  chk.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.4 4.4L19 6.4"/></svg>';
+
+  ph.append(tag, zoom, chk);
+
+  const nm = document.createElement('div');
+  nm.className = 'nm'; nm.textContent = itemName(it);
+
+  card.append(ph, nm);
+  card.onclick = () => toggleSel(it, card);
+  return card;
+}
+
+function showNotice(title, sub){
+  notice.innerHTML = '<div class="notice"><b>' + esc(title) + '</b>' + esc(sub || '') +
+    '<div><button class="retry" id="retryBtn">重试</button></div></div>';
+  const r = $('retryBtn'); if (r) r.onclick = () => initLib(S.lib, true);
+}
+
+/* 分批加载哨兵 */
+let io = null;
+function sentinelOn(){
+  if (io) return;
+  io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) renderBatch(); }, { root: scroller, rootMargin: '600px 0px' });
+  io.observe($('sentinel'));
+}
+function sentinelOff(){ if (io){ io.disconnect(); io = null; } }
+
+/* ───────────────────────── 选择 ───────────────────────── */
+function isSel(it){ return S.sel.some(x => x.kind === S.lib && x.id === it.id); }
+function toggleSel(it, cardEl){
+  const i = S.sel.findIndex(x => x.kind === S.lib && x.id === it.id);
+  if (i >= 0){ S.sel.splice(i, 1); if (cardEl) cardEl.classList.remove('sel'); }
+  else {
+    if (S.sel.length >= MAX_SEL){ toast('最多同时选 ' + MAX_SEL + ' 张'); return; }
+    S.sel.push({ kind:S.lib, id:it.id, name:itemName(it), url:abs(it['原图']), thumb:abs(it['缩略图']) });
+    if (cardEl) cardEl.classList.add('sel');
+  }
+  renderSel();
+}
+function renderSel(){
+  selStrip.innerHTML = '';
+  S.sel.forEach((x, i) => {
+    const d = document.createElement('div'); d.className = 'sel-th';
+    const im = document.createElement('img'); im.src = x.thumb; im.alt = '';
+    const n = document.createElement('i'); n.textContent = i + 1;
+    d.append(im, n);
+    d.title = x.name;
+    selStrip.appendChild(d);
+  });
+  selHint.textContent = S.sel.length ? ('已选 ' + S.sel.length + ' / ' + MAX_SEL) : '未选择';
+  $('btnAdd').disabled = !S.sel.length;
+  $('btnDownload').disabled = !S.sel.length;
+}
+
+/* ───────────────────────── 灯箱 ───────────────────────── */
+let lbItem = null;
+function openLightbox(it){
+  lbItem = it;
+  $('lbName').textContent = itemName(it) + (itemTag(it) ? '　·　' + itemTag(it) : '');
+  const img = $('lbImg');
+  img.dataset.mirror = '';
+  img.src = abs(it['原图']);
+  img.onerror = () => { if (!img.dataset.mirror){ img.dataset.mirror = '1'; img.src = mirrorOf(it['原图']); } };
+  $('lb').classList.add('open');
+}
+function closeLightbox(){ $('lb').classList.remove('open'); lbItem = null; }
+
+/* ───────────────────────── 下载 / 加入参考 ───────────────────────── */
+async function fetchOriginal(url){
+  const res = await fetch(url, { cache:'force-cache' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const b = await res.blob();
+  if (!b.size) throw new Error('空文件');
+  return b;
+}
+function saveBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function fileNameOf(it){
+  const p = String(it.url || it['原图'] || '').split('?')[0].split('/').pop();
+  return p || (it.id + '.png');
+}
+async function downloadItems(items){
+  for (const it of items){
+    const name = it.name ? (String(it.name).replace(/[\\/:*?"<>|]/g, '_').slice(0, 40) + '_' + fileNameOf(it)) : fileNameOf(it);
+    try{
+      const res = await fetch(it.url, { cache:'force-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      let b = await res.blob();
+      if (!b.size) throw new Error('空文件');
+      saveBlob(b, name.split('/').pop());
+      toast('已保存：' + name.split('/').pop());
+    }catch(e){
+      // 主源失败 → 备用域名 / 新窗口打开
+      try{
+        const b2 = await fetch(String(it.url).replace(RAW, MIRROR), { cache:'force-cache' }).then(r => r.blob());
+        if (b2 && b2.size){ saveBlob(b2, name.split('/').pop()); toast('已保存：' + name.split('/').pop()); continue; }
+      }catch(_){}
+      window.open(it.url, '_blank');
+      toast('已在新窗口打开原图，可长按保存');
+    }
+  }
+}
+function toast(msg){
+  let t = document.getElementById('toast');
+  if (!t){
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;max-width:88vw;padding:9px 14px;border-radius:11px;background:rgba(58,46,40,.92);color:#fff;font-size:12.5px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.24);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(-2px)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%)'; }, 1900);
+}
+
+function post(msg){ try{ parent.postMessage(msg, '*'); }catch(e){} }
+
+function addSelected(){
+  if (!S.sel.length) return;
+  // 档 0：只交付图片，不附带任何提示词/角色语义，role 由父页置为「不指定」
+  post({ source:'ref-gallery', type:'add-ref', role:'none',
+         items: S.sel.map(x => ({ kind:x.kind, id:x.id, name:x.name, url:x.url })) });
+  toast('正在加入 ' + S.sel.length + ' 张参考图…');
+}
+
+/* ───────────────────────── 初始化 ───────────────────────── */
+async function initLib(lib, force){
+  S.lib = lib;
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.lib === lib));
+  S.chip = ''; S.q = ''; $('q').value = ''; $('qClear').classList.remove('on');
+  grid.innerHTML = ''; notice.innerHTML = '<div class="notice">正在载入图库…</div>';
+  sentinelOff();
+  if (force) S.data[lib] = null;
+  try{
+    await loadLib(lib);
+    const n = S.data[lib].length;
+    const sub = { pose:'姿势', costume:'服装', portrait:'人像' }[lib];
+    const meta = await loadMeta();
+    let stamp = '';
+    if (meta && meta[lib]){
+      const t = meta[lib].updatedAt || meta[lib].checkedAt || '';
+      if (t) stamp = '　·　索引 ' + String(t).slice(0, 10);
+    }
+    $('tbSub').textContent = sub + '库 ' + n + ' 条' + stamp + '　·　语义由你的提示词决定';
+    renderChips();
+    applyFilter();
+  }catch(e){
+    showNotice('图库索引读取失败', '请确认 data/gallery/' + lib + '.json 存在（' + (e.message || e) + '）');
+  }
+}
+
+$('seg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-lib]');
+  if (!b || b.dataset.lib === S.lib) return;
+  initLib(b.dataset.lib, false);
+});
+
+let qTimer = null;
+$('q').addEventListener('input', () => {
+  const v = $('q').value;
+  $('qClear').classList.toggle('on', !!v);
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { S.q = v; applyFilter(); }, 130);
+});
+$('qClear').onclick = () => { $('q').value = ''; S.q = ''; $('qClear').classList.remove('on'); applyFilter(); $('q').focus(); };
+
+$('btnSafe').onclick = () => {
+  S.sfw = !S.sfw;
+  localStorage.setItem(SFW_KEY, S.sfw ? '1' : '0');
+  $('btnSafe').classList.toggle('on', S.sfw);
+  S.sel = S.sel.filter(x => true);
+  applyFilter();
+  toast(S.sfw ? '安全模式：已隐藏性感/内衣/泳装类' : '安全模式已关闭');
+};
+$('btnSafe').classList.toggle('on', S.sfw);
+
+$('btnClose').onclick = () => post({ source:'ref-gallery', type:'close' });
+$('btnAdd').onclick = addSelected;
+$('btnDownload').onclick = () => downloadItems(S.sel);
+$('lbClose').onclick = closeLightbox;
+$('lb').addEventListener('click', e => { if (e.target === $('lb') || e.target.classList.contains('lb-img')) closeLightbox(); });
+$('lbDownload').onclick = () => { if (lbItem) downloadItems([{ url:abs(lbItem['原图']), id:lbItem.id, name:itemName(lbItem) }]); };
+$('lbAdd').onclick = () => {
+  if (!lbItem) return;
+  if (isSel(lbItem)) { toast('这张已在选择里'); return; }
+  toggleSel(lbItem, grid.querySelector('.card[data-key="' + (S.lib + '|' + lbItem.id).replace(/"/g, '') + '"]'));
+  addSelected();
+  closeLightbox();
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if ($('lb').classList.contains('open')) closeLightbox(); else post({ source:'ref-gallery', type:'close' }); } });
+
+renderSel();
+initLib(S.lib, false);
+})();
+</script>
+</body>
+</html>
