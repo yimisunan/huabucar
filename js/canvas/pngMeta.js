@@ -1,4 +1,5 @@
 import { REFERENCE_ROLES, REL_LABELS } from './state.js';
+import { renderDetailModalContent } from './ui-studio.js';
 
 let state = null, el = null;
 export function bindRuntime(s, e){ state = s; el = e; }
@@ -33,6 +34,7 @@ export function taskDetailText(task){
 
 export function openDetail(task){
   state.detailTask = task;
+  renderDetailModalContent(task);
   el.detailText.textContent = taskDetailText(task);
   el.detailModal.classList.add('open');
 }

@@ -1,6 +1,7 @@
 import { TIERS, MAX_PIXELS, LS_PRESETS, LS_RECENT, VIDEO_MODELS, VIDEO_SECONDS, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS } from './state.js';
 import { toast, lsGet, lsSet, escapeHtml } from './util.js';
 import { getSelectedImageModel, getSelectedChatModel, getSelectedVideoModel, getVideoCapabilities, getVideoModelsForPreset, getSizeVal, getCapNum, getImageModelCapabilities, getImageRatios, syncImageParamOptions, syncGifHint, applyPreset, maybeRefreshLiveModels } from './settings.js';
+import { ratioFrameSvg, syncTopbarHud } from './ui-studio.js';
 
 import { findImageSize, resolveImageSize } from './imageSizes.js';
 
@@ -38,6 +39,7 @@ export function setMode(mode){
     : (mode === 'img2img' ? '图生图：先加参考图，再描述怎么改 → 点「生成」<br>结果以卡片出现在画布上，可拖拽整理、双指缩放' : '文生图：在下方输入描述 → 点「生成」<br>结果以卡片出现在画布上，可拖拽整理、双指缩放');
   renderVideoParams();
   syncQuickRow();
+  syncTopbarHud();
   if(!isVideo) syncImageParamOptions();
   document.dispatchEvent(new Event('canvas-mode-change'));
 }
@@ -189,7 +191,7 @@ export function renderSizes(){
     const d = document.createElement('button');
     d.type = 'button';
     d.className = 'size-opt' + (v===state.selectedSize ? ' active' : '');
-    d.innerHTML = '<div class="r">' + s.r + '</div><div class="d">' + s.d + '</div>';
+    d.innerHTML = ratioFrameSvg(s.r) + '<div class="r">' + s.r + '</div><div class="d">' + s.d + '</div>';
 
     d.onclick = ()=>{
       state.selectedSize = v;
@@ -262,9 +264,15 @@ export function syncQuickRow(){
   if(el.qcStatus){
     const model = isVideo ? getSelectedVideoModel() : getSelectedImageModel();
     const label = isVideo ? (state.videoMode === 'img2video' ? '图片生视频' : '文生视频') : (state.currentMode === 'img2img' ? '图生图' : '文生图');
-    el.qcStatus.innerHTML = '<b>' + label + '</b>' + (isVideo && state.videoMode === 'img2video' ? ' ' + state.currentFiles.length + ' 图' : '') + (model ? ' · ' + escapeHtml(model) : '');
+    const refBadge = ((state.currentMode === 'img2img' || (isVideo && state.videoMode === 'img2video')) && state.currentFiles.length) ? ' ' + state.currentFiles.length + ' 图' : '';
+    el.qcStatus.innerHTML = '<b>' + label + '</b>' + refBadge + (model ? ' · ' + escapeHtml(model) : '');
   }
-  if(el.qcNeg) el.qcNeg.textContent = isVideo ? '视频负面词' : '负面词';
+  if(el.qcNeg){
+    const hasNeg = !!(el.negative && el.negative.value.trim());
+    el.qcNeg.classList.toggle('has-val', hasNeg);
+    el.qcNeg.textContent = (isVideo ? '视频负面词' : '负面词') + (hasNeg ? ' · 已填' : '');
+  }
+  syncTopbarHud();
 }
 
 export function renderRecentChips(){

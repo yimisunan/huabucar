@@ -1,6 +1,7 @@
 import { $, LS_KEY, LS_API_PROFILES, REQUEST_TIMEOUTS, MAX_REFS, VIDEO_MODELS, VIDEO_SECONDS, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS } from './state.js';
 import { lsGet, lsSet, toast, escapeHtml, fetchWithTimeout, parseApiError, localApiProxyHint } from './util.js';
 import { imageRatios } from './imageSizes.js';
+import { uiPrompt, uiConfirm, syncTopbarHud } from './ui-studio.js';
 
 let state = null, el = null;
 export function bindRuntime(s, e){ state = s; el = e; }
@@ -304,6 +305,7 @@ export function setConn(text, type){
   el.connText.textContent = text;
 
   el.connDot.className = 'conn-dot' + (type==='ok'?' ok':type==='error'?' bad':type==='warn'?' warn':'');
+  syncTopbarHud();
 
 }
 
@@ -770,8 +772,14 @@ export function loadApiProfiles(){
   return state.apiProfiles;
 }
 
-export function saveApiProfile(){
-  const name = window.prompt('请输入配置档案名称', '站点配置 ' + ((state.apiProfiles || []).length + 1));
+export async function saveApiProfile(){
+  const name = await uiPrompt({
+    title: '保存 API 配置档案',
+    message: '为当前接口预设、地址与 Key 命名档案',
+    placeholder: '配置名称',
+    defaultValue: '站点配置 ' + ((state.apiProfiles || []).length + 1),
+    confirmText: '保存档案'
+  });
   if(name===null) return false;
   const clean = name.trim();
   if(!clean){ toast('配置名称不能为空', 'err'); return false; }
@@ -791,11 +799,11 @@ export function saveApiProfile(){
   return true;
 }
 
-export function overwriteApiProfile(){
+export async function overwriteApiProfile(){
   const id = el.apiProfileSelect && el.apiProfileSelect.value;
   const profile = (state.apiProfiles || []).find(p=>p.id===id);
   if(!profile){ toast('请先选择要覆盖的配置档案', 'err'); return false; }
-  if(!window.confirm('用当前设置覆盖「' + profile.name + '」？')) return false;
+  if(!(await uiConfirm({ title:'覆盖配置档案', message:'用当前设置覆盖「' + profile.name + '」？', confirmText:'覆盖' }))) return false;
   const next = makeApiProfile(profile.name);
   next.id = profile.id;
   state.apiProfiles = state.apiProfiles.map(p=>p.id===profile.id ? next : p);
@@ -806,11 +814,11 @@ export function overwriteApiProfile(){
   return true;
 }
 
-export function deleteApiProfile(){
+export async function deleteApiProfile(){
   const id = el.apiProfileSelect && el.apiProfileSelect.value;
   const profile = (state.apiProfiles || []).find(p=>p.id===id);
   if(!profile){ toast('请先选择要删除的配置档案', 'err'); return false; }
-  if(!window.confirm('删除配置档案「' + profile.name + '」？')) return false;
+  if(!(await uiConfirm({ title:'删除配置档案', message:'确定删除配置档案「' + profile.name + '」？', confirmText:'删除', danger:true }))) return false;
   state.apiProfiles = state.apiProfiles.filter(p=>p.id!==id);
   if(state.apiProfileActiveId===id) state.apiProfileActiveId = '';
   if(!writeApiProfileStore()){ toast('⚠️ 本地存储空间不足，删除状态未保存', 'err'); return false; }

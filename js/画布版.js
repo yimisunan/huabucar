@@ -1,1 +1,1 @@
-import './canvas/app.js';
+import './canvas/app.js?v=catui17';

@@ -1,3 +1,4 @@
+import { ICO } from './icons.js';
 import { REFERENCE_ROLES, MAX_REFS } from './state.js';
 import { toast, mimeToExt } from './util.js';
 import { getMaxReferences, getCapNum, getImageModelCapabilities } from './settings.js';
@@ -91,6 +92,8 @@ export async function addRefFiles(fileList){
 
   });
 
+  if(okList.length && state.currentMode === 'txt2img') setMode('img2img');
+
   scheduleAutosave();
 
   renderRefStrip();
@@ -173,7 +176,7 @@ export function renderRefStrip(){
 
     const del = document.createElement('button');
 
-    del.className = 'del'; del.textContent = '✕';
+    del.type = 'button'; del.className = 'del'; del.innerHTML = ICO.close; del.title = '移除参考图'; del.setAttribute('aria-label', '移除参考图');
 
     del.onclick = ()=> removeRef(i);
 
@@ -202,9 +205,11 @@ export function renderRefStrip(){
 
   const add = document.createElement('button');
 
-  add.className = 'ref-add'; add.innerHTML = '<svg class="ic duo-col" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor"><path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" class="pb"/><path class="pf" d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>'; add.title = '添加参考图'; add.setAttribute('aria-label', '添加参考图');
+  add.id = 'refAdd'; add.type = 'button'; add.className = 'ref-add'; add.innerHTML = ICO.plus; add.title = '添加参考图'; add.setAttribute('aria-label', '添加参考图');
 
-  add.onclick = ()=> el.fileInput.click();
+  el.refAdd = add;
+
+  add.onclick = ()=> state && state.hooks && state.hooks.openRefPopover ? state.hooks.openRefPopover(add) : el.fileInput.click();
 
   // fileInput 必须留在 DOM 内，否则重绘参考图条后「+」点击会失效
 

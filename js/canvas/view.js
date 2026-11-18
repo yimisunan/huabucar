@@ -3,6 +3,7 @@ import { CARD_W, CARD_GAP, PAD, CARD_H_EST, REL_COLORS, REL_LABELS, LS_HIST, OV_
 import { toast, escapeHtml, clamp, getRequestUrl, fetchWithTimeout, mimeToExt, lsGet, lsSet } from './util.js';
 import { getTaskResult, getTaskResultIndex, setTaskResultIndex } from './paint.js';
 import { addRefFromBlob } from './refs.js';
+import { syncPreviewControls, resetPreviewZoom, syncTopbarHud } from './ui-studio.js';
 
 let state = null, el = null;
 export function bindRuntime(s, e){ state = s; el = e; }
@@ -34,12 +35,18 @@ export function addLink(fromId, toId, rel){
   const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   arrow.setAttribute('class', 'link-arrow');
   arrow.setAttribute('fill', color);
+  const tagBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  tagBg.setAttribute('class', 'link-tag-bg');
+  tagBg.setAttribute('stroke', color);
+  tagBg.setAttribute('rx', '9');
+  tagBg.setAttribute('ry', '9');
   const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   tag.setAttribute('class', 'link-tag');
+  tag.setAttribute('fill', color);
   tag.textContent = REL_LABELS[rel] || rel;
-  g.append(path, arrow, tag);
+  g.append(path, arrow, tagBg, tag);
   state.linkLayer.appendChild(g);
-  state.links.push({ from: fromId, to: toId, rel, path, arrow, tag, g });
+  state.links.push({ from: fromId, to: toId, rel, color, path, arrow, tagBg, tag, g });
   updateLinks();
 }
 
@@ -51,6 +58,14 @@ export function cardAnchor(t){
 }
 
 export function updateLinks(){
+  if(!state.linkLayer) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const expand = (x, y)=>{
+    if(x < minX) minX = x;
+    if(y < minY) minY = y;
+    if(x > maxX) maxX = x;
+    if(y > maxY) maxY = y;
+  };
   // 倒序遍历：避免 forEach+splice 索引错位导致相邻失效连线被跳过、SVG 幽灵箭头残留
   for(let i = state.links.length - 1; i >= 0; i--){
     const l = state.links[i];
@@ -58,21 +73,66 @@ export function updateLinks(){
     if(!a || !b || !a.card || !b.card){ l.g.remove(); state.links.splice(i, 1); continue; }
     const p1 = cardAnchor(a), p2 = cardAnchor(b);
     const dx = p2.x - p1.x, dy = p2.y - p1.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len, uy = dy / len;
-    const off = CARD_W / 2 + 2;
-    const sx = p1.x + ux * off, sy = p1.y + uy * off;
-    const ex = p2.x - ux * off, ey = p2.y - uy * off;
-    const mx = (sx + ex) / 2, my = (sy + ey) / 2 - 24;
-    l.path.setAttribute('d', 'M' + sx.toFixed(1) + ',' + sy.toFixed(1) + ' Q' + mx.toFixed(1) + ',' + my.toFixed(1) + ' ' + ex.toFixed(1) + ',' + ey.toFixed(1));
-    const ang = Math.atan2(ey - my, ex - mx);
+    const adx = Math.max(0.001, Math.abs(dx)), ady = Math.max(0.001, Math.abs(dy));
+    const rx = CARD_W / 2 + 4;
+    const rya = (a.card.offsetHeight || 150) / 2 + 4;
+    const ryb = (b.card.offsetHeight || 150) / 2 + 4;
+    let k1 = Math.min(rx / adx, rya / ady);
+    let k2 = Math.min(rx / adx, ryb / ady);
+    if(k1 + k2 > 0.96){ const s = 0.96 / (k1 + k2); k1 *= s; k2 *= s; }
+    const sx = p1.x + dx * k1, sy = p1.y + dy * k1;
+    const ex = p2.x - dx * k2, ey = p2.y - dy * k2;
+    let c1x, c1y, c2x, c2y;
+    if(Math.abs(dx) >= Math.abs(dy)){
+      const bend = Math.max(36, Math.min(120, Math.abs(ex - sx) * 0.48));
+      const arc = Math.abs(ey - sy) < 16 ? -16 : 0;
+      c1x = sx + (dx >= 0 ? bend : -bend); c1y = sy + arc;
+      c2x = ex - (dx >= 0 ? bend : -bend); c2y = ey + arc;
+    }else{
+      const bend = Math.max(32, Math.min(110, Math.abs(ey - sy) * 0.48));
+      const arc = Math.abs(ex - sx) < 16 ? -16 : 0;
+      c1x = sx + arc; c1y = sy + (dy >= 0 ? bend : -bend);
+      c2x = ex + arc; c2y = ey - (dy >= 0 ? bend : -bend);
+    }
+    l.path.setAttribute('d', 'M' + sx.toFixed(1) + ',' + sy.toFixed(1) + ' C' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + ex.toFixed(1) + ',' + ey.toFixed(1));
+    const tx = ex - c2x, ty = ey - c2y;
+    const ang = (Math.abs(tx) + Math.abs(ty) > 0.5) ? Math.atan2(ty, tx) : Math.atan2(dy || 0, dx || 1);
     const bx = ex - Math.cos(ang) * 11, by = ey - Math.sin(ang) * 11;
     const ax = bx - Math.cos(ang - 0.5) * 6, ay = by - Math.sin(ang - 0.5) * 6;
     const cx2 = bx - Math.cos(ang + 0.5) * 6, cy2 = by - Math.sin(ang + 0.5) * 6;
     l.arrow.setAttribute('d', 'M' + ex.toFixed(1) + ',' + ey.toFixed(1) + ' L' + ax.toFixed(1) + ',' + ay.toFixed(1) + ' L' + cx2.toFixed(1) + ',' + cy2.toFixed(1) + ' Z');
+    const mx = 0.125 * (sx + 3 * c1x + 3 * c2x + ex);
+    const my = 0.125 * (sy + 3 * c1y + 3 * c2y + ey);
+    const label = l.tag.textContent || '';
+    const tw = Math.max(36, label.length * 11 + 16), th = 18;
+    if(l.tagBg){
+      l.tagBg.setAttribute('x', (mx - tw / 2).toFixed(1));
+      l.tagBg.setAttribute('y', (my - th / 2).toFixed(1));
+      l.tagBg.setAttribute('width', tw.toFixed(1));
+      l.tagBg.setAttribute('height', th.toFixed(1));
+    }
     l.tag.setAttribute('x', mx.toFixed(1));
-    l.tag.setAttribute('y', (my - 6).toFixed(1));
+    l.tag.setAttribute('y', (my + 3.5).toFixed(1));
     l.tag.setAttribute('text-anchor', 'middle');
+    expand(sx, sy); expand(ex, ey); expand(c1x, c1y); expand(c2x, c2y); expand(mx - tw / 2, my - th / 2); expand(mx + tw / 2, my + th / 2);
+  }
+  if(state.links.length && Number.isFinite(minX)){
+    const pad = 160;
+    const x0 = Math.min(0, Math.floor(minX - pad));
+    const y0 = Math.min(0, Math.floor(minY - pad));
+    const w = Math.max(1600, Math.ceil(maxX + pad) - x0);
+    const h = Math.max(1200, Math.ceil(maxY + pad) - y0);
+    state.linkLayer.style.left = x0 + 'px';
+    state.linkLayer.style.top = y0 + 'px';
+    state.linkLayer.style.width = w + 'px';
+    state.linkLayer.style.height = h + 'px';
+    state.linkLayer.setAttribute('viewBox', x0 + ' ' + y0 + ' ' + w + ' ' + h);
+  }else{
+    state.linkLayer.style.left = '0px';
+    state.linkLayer.style.top = '0px';
+    state.linkLayer.style.width = '1600px';
+    state.linkLayer.style.height = '1200px';
+    state.linkLayer.setAttribute('viewBox', '0 0 1600 1200');
   }
 }
 
@@ -247,7 +307,7 @@ export function createCard(task, slot){
   if(task.batchOf){
     // 同批次卡片顶部同色条，便于识别「生成几张」的一组
     const batchId = task.id - task.batchIdx + 1;
-    const batchColors = ['#7c5cff','#ff7c5c','#5cc8ff','#5cff8a','#ff5cc8','#ffd25c'];
+    const batchColors = ['#EF8558','#7A6BD1','#4E9E78','#5B9BD5','#D46A92','#D2922E'];
     card.style.borderTop = '3px solid ' + batchColors[batchId % batchColors.length];
   }
   const badge = document.createElement('div');
@@ -286,17 +346,17 @@ export function renderCardState(task){
      const finalTier = task.serverImageSizeTier ? ' · ' + task.serverImageSizeTier : '';
      const finalQuality = task.serverQuality ? ' · ' + task.serverQuality : '';
      const cost = task.serverCostUsd !== '' && task.serverCostUsd != null ? ' · $' + task.serverCostUsd : '';
-     const detail = isVideo ? ((task.videoSeconds || '6') + '秒 · ' + (task.videoAspectRatio || '16:9') + ' · ' + (task.videoResolution || '720P')) : (finalSize + finalTier + finalQuality + cost + extraCount);
+     const detail = isVideo ? ((task.videoSeconds || '6') + '秒 · ' + (task.videoAspectRatio || '16:9') + ' · ' + (task.videoResolution || '720P')) : (finalSize + finalTier + finalQuality + cost);
     meta.innerHTML = '<b>#' + task.id + ' ' + escapeHtml(model) + '</b><span>' + escapeHtml(detail) + extraCount + elapsed + '</span>';
     body.appendChild(meta);
     if(t.resultItems.length > 1){
       const nav = document.createElement('div');
       nav.className = 'c-result-nav';
       const prev = document.createElement('button');
-      prev.className = 'c-result-btn'; prev.textContent = '‹'; prev.title = '上一项'; prev.disabled = getTaskResultIndex(t) === 0;
+      prev.type = 'button'; prev.className = 'c-result-btn'; prev.innerHTML = ICO.chevLeft; prev.title = '上一项'; prev.setAttribute('aria-label', '上一项'); prev.disabled = getTaskResultIndex(t) === 0;
       prev.onclick = e=>{ e.stopPropagation(); setTaskResultIndex(t, getTaskResultIndex(t) - 1); };
       const next = document.createElement('button');
-      next.className = 'c-result-btn'; next.textContent = '›'; next.title = '下一项'; next.disabled = getTaskResultIndex(t) === t.resultItems.length - 1;
+      next.type = 'button'; next.className = 'c-result-btn'; next.innerHTML = ICO.chevRight; next.title = '下一项'; next.setAttribute('aria-label', '下一项'); next.disabled = getTaskResultIndex(t) === t.resultItems.length - 1;
       next.onclick = e=>{ e.stopPropagation(); setTaskResultIndex(t, getTaskResultIndex(t) + 1); };
       const label = document.createElement('span');
       label.textContent = (getTaskResultIndex(t) + 1) + ' / ' + t.resultItems.length;
@@ -305,7 +365,7 @@ export function renderCardState(task){
     }
     const acts = document.createElement('div');
     acts.className = 'c-acts';
-    const mkAct = (icon, title, fn)=>{ const b = document.createElement('button'); b.className = 'c-act'; b.innerHTML = icon; b.title = title; b.onclick = fn; acts.appendChild(b); };
+    const mkAct = (icon, title, fn)=>{ const b = document.createElement('button'); b.type = 'button'; b.className = 'c-act'; b.innerHTML = icon; b.title = title; b.onclick = fn; acts.appendChild(b); };
     if(task.resultWarning){
       const warning = document.createElement('div'); warning.className='q'; warning.textContent=task.resultWarning; body.appendChild(warning);
       mkAct(ICO.retry + '补取返图', '补取原任务缺失图片', ()=>retryTask(task));
@@ -320,6 +380,7 @@ export function renderCardState(task){
     media.onloadedmetadata = ()=> reflowAfterResize(t.card);
     media.onload = ()=> reflowAfterResize(t.card);
     scheduleAutosave();
+    syncTopbarHud();
     return;
   }
   if(task.state === 'archived'){
@@ -341,6 +402,7 @@ export function renderCardState(task){
     meta.innerHTML = '<b>' + ICO.cube + ' ' + escapeHtml(task.model || task.videoModel || '') + '</b><span>' + escapeHtml(task.restoreNote || archivedDetail) + '</span>';
     body.appendChild(meta);
     scheduleAutosave();
+    syncTopbarHud();
     return;
   }
   body.innerHTML = '';
@@ -357,20 +419,20 @@ export function renderCardState(task){
     st.innerHTML = '<div class="spin"></div><div class="q stage">' + escapeHtml(stageText(task)) + '</div><div class="q">' + escapeHtml(model) + ' · ' + escapeHtml(detail) + '</div><div class="q elapsed">已等待 0s</div>';
     if(!isVideo){
       const stopQueued = document.createElement('button');
-      stopQueued.className = 'retry'; stopQueued.innerHTML = ICO.stop + '终止';
+      stopQueued.type = 'button'; stopQueued.className = 'retry'; stopQueued.innerHTML = ICO.stop + '终止';
       stopQueued.onclick = ()=> closeTask(task); st.appendChild(stopQueued);
     }
   }else if(task.state === 'running'){
     st.innerHTML = '<div class="spin"></div><div class="q stage">' + escapeHtml(stageText(task)) + '</div><div class="q">' + escapeHtml(model) + ' · ' + escapeHtml(detail) + '</div><div class="q elapsed">已用时 0s</div>';
     if(!isVideo){
       const stopRunning = document.createElement('button');
-      stopRunning.className = 'retry'; stopRunning.innerHTML = ICO.stop + '终止';
+      stopRunning.type = 'button'; stopRunning.className = 'retry'; stopRunning.innerHTML = ICO.stop + '终止';
       stopRunning.onclick = ()=> closeTask(task); st.appendChild(stopRunning);
     }
   }else if(task.state === 'error' || task.state === 'timeout'){
     const title = serverState === 'interrupted' ? '服务器重启后任务中断' : (serverState === 'expired' ? '任务结果已过期' : (task.state==='timeout' ? '超时' : '生成失败'));
     const code = task.serverErrorCode ? ' [' + task.serverErrorCode + ']' : '';
-     st.innerHTML = '<div>❌ ' + title + '</div><div class="q" style="max-width:200px;word-break:break-all;">' + escapeHtml(code + ' ' + (task.errorMsg || task.serverError || '')) + '</div>';
+    st.innerHTML = '<div class="c-err-title">' + ICO.warn + '<span>' + escapeHtml(title) + '</span></div><div class="q" style="max-width:200px;word-break:break-all;">' + escapeHtml(code + ' ' + (task.errorMsg || task.serverError || '')) + '</div>';
     if(!isVideo && task.serverTaskId){
       const upRow = document.createElement('div');
       upRow.className = 'q';
@@ -379,14 +441,14 @@ export function renderCardState(task){
       st.appendChild(upRow);
     }
     const retry = document.createElement('button');
-    retry.className = 'retry';
+    retry.type = 'button'; retry.className = 'retry';
     retry.innerHTML = isVideo ? (ICO.retry + '重试') : (task.recoverPending ? '恢复中…' : (ICO.retry + '恢复'));
     retry.disabled = !isVideo && !!task.recoverPending;
     retry.onclick = ()=> retryTask(task); st.appendChild(retry);
   }else if(task.state === 'cancelled'){
     st.innerHTML = '<div>已取消</div><div class="q">' + escapeHtml(task.serverError || task.errorMsg || '') + '</div>';
     const retry2 = document.createElement('button');
-    retry2.className = 'retry';
+    retry2.type = 'button'; retry2.className = 'retry';
     retry2.innerHTML = isVideo ? (ICO.retry + '重试') : (task.recoverPending ? '恢复中…' : (ICO.retry + '恢复'));
     retry2.disabled = !isVideo && !!task.recoverPending;
     retry2.onclick = ()=> retryTask(task); st.appendChild(retry2);
@@ -399,6 +461,7 @@ export function renderCardState(task){
   meta.innerHTML = '<b>任务 #' + task.id + '</b><span>' + escapeHtml(detail) + serverTag + el2 + '</span>';
   body.appendChild(meta);
   scheduleAutosave();
+  syncTopbarHud();
 }
 
 export function slotOf(card){
@@ -528,6 +591,8 @@ export function showPreview(t){
   if(el.pvRef) el.pvRef.style.display = isVideo ? 'none' : '';
   if(el.pvPaint) el.pvPaint.style.display = isVideo ? 'none' : '';
   (el.pvReuse.querySelector('.lbl')||el.pvReuse).textContent = '复用参数';
+  resetPreviewZoom();
+  syncPreviewControls();
   el.preview.classList.add('open');
 }
 
@@ -540,6 +605,8 @@ export function closePreview(){
   state.libToken++;
   if(state.libDetailBlobUrl){ URL.revokeObjectURL(state.libDetailBlobUrl); state.libDetailBlobUrl = ''; }
   (el.pvReuse.querySelector('.lbl')||el.pvReuse).textContent = '复用参数';
+  resetPreviewZoom();
+  syncPreviewControls();
 }
 
 export function openLibDetail(h){
@@ -555,6 +622,8 @@ export function openLibDetail(h){
   const detail = isVideo ? ((h.videoSeconds || '6') + '秒 · ' + (h.videoAspectRatio || '16:9') + ' · ' + (h.videoResolution || '720P')) : ((h.serverSize || h.serverResolution || h.size || '') + (h.serverImageSizeTier ? ' · ' + h.serverImageSizeTier : '') + (h.serverCostUsd !== '' && h.serverCostUsd != null ? ' · $' + h.serverCostUsd : ''));
   el.previewMeta.textContent = (h.ts||'') + ' · ' + (h.model||'') + ' · ' + detail;
   (el.pvReuse.querySelector('.lbl')||el.pvReuse).textContent = '回填提示词';
+  resetPreviewZoom();
+  syncPreviewControls();
   el.preview.classList.add('open');
   const blobKey = h.origType === 'canvas' ? (h.origKey || '') : h.id;
   if(h.origType === 'idb' || h.origType === 'canvas'){

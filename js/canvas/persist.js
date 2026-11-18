@@ -1,4 +1,5 @@
 import { ICO } from './icons.js';
+import { EMPTY_STATE_SVG, uiConfirm, syncTopbarHud } from './ui-studio.js';
 import { LS_CANVAS, LS_HIST, MAX_HIST, DB_NAME, DB_STORE, THUMB_W, THUMB_Q, OV_STATE, CARD_W } from './state.js';
 import { lsGet, lsSet, cleanB64, b64ToBlob, dataUrlToBlob, fileFromBlob, getRequestUrl, toast } from './util.js';
 import { getCapabilitiesForPreset, getCapabilities, getImageModelCapabilities } from './settings.js';
@@ -136,6 +137,7 @@ task.jobId = status.jobId;
 
 function watchRemoteTask(task, entry){
   if(!task || !entry || !task.jobId) return null;
+  entry.remoteWatchStarted = true;
   stopTaskWatch(task.jobId);
   const callbacks = {
     onStatus(status){
@@ -533,12 +535,12 @@ export async function restoreCanvas(){
       }
     }else if(task.jobId){
       const hasLocalResult = entry.resultItems.length > 0;
-      if(!hasLocalResult && !task.localResultExpected) watchRemoteTask(task, entry);
+      if(!hasLocalResult && !task.localResultExpected && !entry.remoteWatchStarted) watchRemoteTask(task, entry);
     }else if(task.clientTaskId && (task.serverState === 'submitting' || task.state === 'pending')){
       await resumeUnboundTask(task, entry);
     }
   }
-  if(anyResult) toast('🖼 画布已恢复，原图正在本地回填', 'ok');
+  if(anyResult) toast('画布已恢复，原图正在本地回填', 'ok');
 }
 
 export async function downloadBlob(blob, name, meta){
@@ -826,7 +828,7 @@ export function renderLib(){
   if(state.histFavOnly) list = list.filter(h=> h.fav);
   if(q) list = list.filter(h=> ((h.prompt||'') + ' ' + (h.negative||'') + ' ' + (h.model||'') + ' ' + (h.size||'') + ' ' + (h.ts||'')).toLowerCase().indexOf(q) > -1);
   if(!list.length){
-    el.libGrid.innerHTML = '<div class="lib-none">' + (hist.length ? '没有匹配的素材' : '暂无素材<br>生成的图片会自动归档到这里') + '</div>';
+    el.libGrid.innerHTML = '<div class="lib-none">' + EMPTY_STATE_SVG + '<div>' + (hist.length ? '没有匹配的素材' : '暂无素材<br>生成的图片会自动归档到这里') + '</div></div>';
     return;
   }
   list.forEach(h=>{
@@ -857,9 +859,11 @@ export function renderLib(){
     fav.onclick = e=>{ e.stopPropagation(); h.fav = !h.fav; const hist2 = lsGet(LS_HIST, []); const i2 = hist2.findIndex(x=> x.id===h.id); if(i2 > -1){ hist2[i2] = h; lsSet(LS_HIST, hist2); } renderLib(); };
     d.appendChild(fav);
     const del = document.createElement('button');
+    del.type = 'button';
     del.className = 'lib-del';
-    del.textContent = '✕';
+    del.innerHTML = ICO.close;
     del.title = '删除该素材';
+    del.setAttribute('aria-label', '删除该素材');
     del.onclick = e=>{ e.stopPropagation(); delHistItem(h); };
     d.appendChild(del);
     d.onclick = ()=> openLibDetail(h);
@@ -890,7 +894,12 @@ export function thumbFromUrl(url){
 }
 
 export async function clearCanvas(){
-  if(!confirm('确定清空整个画布吗？\n将删除全部卡片、血缘连线与本地原图（IndexedDB），此操作无法撤销。')) return;
+  if(!(await uiConfirm({
+    title: '清空整个画布',
+    message: '将删除全部卡片、血缘连线与本地原图（IndexedDB），此操作无法撤销。',
+    confirmText: '确定清空',
+    danger: true
+  }))) return;
   // 取消后端任务并停止轮询；后端请求与页面生命周期已解耦，不能只 abort 浏览器请求。
   abortAllTasks();
   Object.keys(state.taskEls).forEach(id=>{
@@ -933,6 +942,7 @@ export async function clearCanvas(){
   applyView();
   state.skipAutosave = false;
   updateEmpty();
+  syncTopbarHud();
   toast('🗑 画布已清空（含本地原图）', 'ok');
 }
 
@@ -953,8 +963,15 @@ export async function clearByState(){
     return false;
   });
   if(!all.length){ toast('没有失败 / 超时 / 已取消 / 中断的卡片', 'ok'); return; }
-  if(!confirm('将先核对每张卡的服务器/上游真实状态：\n· 已成功生成的自动找回结果\n· 仍在处理的保留并继续跟踪\n· 确认无结果的才清理\n\n共 ' + all.length + ' 张候选卡（失败 / 超时 / 已取消 / 中断 / 提交僵死），继续吗？')) return;
-  const purgeServer = confirm('是否同时清理本机服务器上的任务记录与结果文件？\n· 只作用于本机生图服务器，不触碰上游中转站\n· 点「确定」= 一并清理；点「取消」= 只清理画布卡片');
+  const dlg = await uiConfirm({
+    title: '核对并清理异常卡片',
+    message: '将先核对共 ' + all.length + ' 张候选卡的服务器/上游真实状态：\n· 已成功生成的自动找回结果\n· 仍在处理的保留并继续跟踪\n· 确认无结果的才清理',
+    confirmText: '开始核对清理',
+    checkboxLabel: '同时清理本机服务器上的任务记录与结果文件（不触碰上游中转站）',
+    checkboxDefault: false
+  });
+  if(!dlg || !dlg.ok) return;
+  const purgeServer = !!dlg.checked;
   const btn = el && el.btnClearByState;
   const oldText = btn ? btn.textContent : '';
   if(btn){ btn.disabled = true; (btn.querySelector('.lbl')||btn).textContent = '核对中…'; }

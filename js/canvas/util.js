@@ -1,4 +1,5 @@
 import { $, LS_KEY, refs } from './state.js';
+import { ICO } from './icons.js';
 
 export function lsGet(key, def){ try{ const v = localStorage.getItem(key); return v==null ? def : JSON.parse(v); }catch(e){ return def; } }
 export function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); return true; }catch(e){ return false; } }
@@ -33,8 +34,11 @@ export function dataUrlToBlob(dataUrl){
 }
 export function toast(msg, type){
   const t = $('toast');
-  t.className = type==='err' ? 'err' : type==='ok' ? 'ok' : '';
-  t.textContent = msg;
+  if(!t) return;
+  const clean = String(msg == null ? '' : msg).replace(/^(?:[\u2705\u26A0\u274C\u23F3\uFE0F\u2699]|🎯|🧹|🖌|⛶|🗑|🖼)+\s*/u, '');
+  const ico = type==='err' ? ICO.warn : type==='ok' ? ICO.check : type==='loading' ? '<span class="t-spin" aria-hidden="true"></span>' : ICO.info;
+  t.className = type==='err' ? 'err' : type==='ok' ? 'ok' : type==='loading' ? 'loading' : '';
+  t.innerHTML = '<span class="t-ico">' + ico + '</span><span class="t-msg">' + escapeHtml(clean) + '</span>';
   t.classList.add('show');
   if(refs.state.toastTimer) clearTimeout(refs.state.toastTimer);
   refs.state.toastTimer = setTimeout(()=> t.classList.remove('show'), type==='loading' ? 10000 : 3600);

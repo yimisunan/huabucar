@@ -817,6 +817,7 @@ export function watchServerTask(jobId, callbacks, options) {
         timeoutMs: opts.timeoutMs
       });
 
+      requestController = null;
       consecutiveErrors = 0;
       if(stopped) return;
 

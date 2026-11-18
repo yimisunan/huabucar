@@ -8,6 +8,7 @@ import { renderRefStrip, addRefFromBlob } from './refs.js';
 import { normalizePromptAndNegative, buildRequestPrompt, autosize } from './prompts.js';
 import { getTaskResult } from './paint.js';
 import { submitServerTask, fetchTaskResults, getTaskResultUrl, cancelServerTask, ensureClientTaskId, watchServerTask, stopTaskWatch, extractTaskServerMeta, resumeServerTask, fetchTaskByClient } from './serverTasks.js';
+import { uiConfirm, syncTopbarHud } from './ui-studio.js';
 
 let state = null, el = null;
 export function bindRuntime(s, e){ state = s; el = e; }
@@ -482,6 +483,7 @@ export function removeCard(task){
   idbClearPrefix('canvas_' + task.id + '_');
   releaseTaskRefs(task.id);
   updateEmpty();
+  syncTopbarHud();
   rebuildColumns(); // 回收列高，后续新卡片插入位置正确
   scheduleAutosave();
 }
@@ -800,7 +802,7 @@ export async function copyPrompt(task){
   }
 }
 
-export function removeBatchGroup(task){
+export async function removeBatchGroup(task){
   if(!task.batchOf) return;
   const batchId = task.id - task.batchIdx + 1;
   const ids = Object.keys(state.taskEls).filter(id=>{
@@ -808,8 +810,8 @@ export function removeBatchGroup(task){
     return x.batchOf && (x.id - x.batchIdx + 1) === batchId;
   });
   if(!ids.length) return;
-  if(!confirm('删除同批 ' + ids.length + ' 张卡片？')) return;
-  ids.forEach(id=> removeCard(state.taskEls[id].task));
+  if(!(await uiConfirm({ title:'删除同批卡片', message:'确定删除同批 ' + ids.length + ' 张卡片？', confirmText:'删除', danger:true }))) return;
+  ids.forEach(id=> state.taskEls[id] && removeCard(state.taskEls[id].task));
   toast('已删除同批 ' + ids.length + ' 张卡片', 'ok');
 }
 

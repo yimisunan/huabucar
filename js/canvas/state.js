@@ -47,7 +47,7 @@ export const QUICK_FILLS = [
   { ico:'sun', label:'换背景', fill:'保持人物脸部、发型、画风不变，背景换成黄昏海滩，柔光' },
   { ico:'sparkle', label:'高清修复', fill:'整体高清修复，增强皮肤质感与光影细节，其他不变' }
 ];
-export const REL_COLORS = { variant:'#7c5cff', inpaint:'#5cc8ff', optimize:'#ffb45c' };
+export const REL_COLORS = { variant:'#7A6BD1', inpaint:'#4E9E78', optimize:'#E07A5F' };
 export const REL_LABELS = { variant:'变体', inpaint:'重绘', optimize:'优化' };
 export const DB_NAME = 'img2img_hist_db';
 export const DB_STORE = 'originals';

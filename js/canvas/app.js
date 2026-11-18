@@ -84,6 +84,7 @@
   const pngMetaMod = await import(new URL('pngMeta.js', base));
   const videoCtlMod = await import(new URL('videoController.js', base));
   const canvasProjMod = await import(new URL('canvasProject.js', base));
+  const studioMod = await import(new URL('ui-studio.js', base));
   const {
     taskDetailText, openDetail, closeDetail, crc32, b64encodeUtf8, pngInsertText, taskMeta,
     bindRuntime: bindPngMetaRuntime
@@ -96,6 +97,11 @@
   const {
     exportCanvasProject, importCanvasProject, renderOverview, bindRuntime: bindCanvasProjRuntime
   } = canvasProjMod;
+  const {
+    bindStudioRuntime, closeAppDialog, uiConfirm, syncTopbarHud,
+    closeDockPopover, toggleDockPopover, initDropAndPaste,
+    initPreviewEnhancements, initPaintCursor, initStudioDecor
+  } = studioMod;
 
 
   /* ================= DOM 引用 ================= */
@@ -182,6 +188,7 @@
   state.hooks.cancelVideoTask = cancelVideoTask;
   state.hooks.ensureVideoClientTaskId = ensureVideoClientTaskId;
   state.hooks.getVideoTaskStatus = videoTasksMod.getVideoTaskStatus;
+  state.hooks.openRefPopover = anchor => toggleDockPopover('ref', anchor);
   state.videoWatches = state.videoWatches || new Map();
   bindPromptsRuntime(state, el);
   bindPaintRuntime(state, el);
@@ -191,6 +198,18 @@
   bindPngMetaRuntime(state, el);
   bindVideoCtlRuntime(state, el);
   bindCanvasProjRuntime(state, el);
+  bindStudioRuntime(state, el, {
+    focusDrawer: focusDrawerTarget,
+    applyCustomSize,
+    setMode,
+    syncQuickRow,
+    openPromptEditor,
+    autosize,
+    openTemplates,
+    openGallery,
+    addRefFiles,
+    setTaskResultIndex
+  });
   state.hooks.thumbFromUrl = thumbFromUrl;
   function openTemplates() {
     openDrawer('templates');
@@ -201,7 +220,7 @@
   function openGallery() {
     openDrawer('gallery');
     const f = $('galFrame');
-    if (f && !f.getAttribute('src')) f.setAttribute('src', '页面/参考图库选择.html');
+    if (f && !f.getAttribute('src')) f.setAttribute('src', '页面/参考图库选择.html?v=catui17');
   }
 
   /* 参考图库（iframe）→ 加入参考图。
@@ -234,16 +253,22 @@
   function openDrawer(name){
     closeSheet();
     closeConsole();
+    closeDockPopover();
     Object.values(drawers).forEach(d=> d.classList.remove('open'));
     if(!drawers[name]) return;
+    state.lastDrawerTab = name;
     drawers[name].classList.add('open');
     el.mask.classList.add('open');
+    const cbtn = $('btnConsole');
+    if (cbtn) cbtn.setAttribute('aria-expanded', 'true');
     if(name==='lib') renderLib();
     if(name==='overview') renderOverview();
   }
   function closeDrawers(){
     Object.values(drawers).forEach(d=> d.classList.remove('open'));
     el.mask.classList.remove('open');
+    const cbtn = $('btnConsole');
+    if (cbtn) cbtn.setAttribute('aria-expanded', 'false');
   }
   function focusDrawerTarget(drawerName, target, opts) {
     openDrawer(drawerName);
@@ -273,7 +298,8 @@
     if (!el.promptEditor) return;
     el.promptEditorText.value = el.prompt.value || '';
     el.promptEditorNegative.value = el.negative.value || '';
-    el.promptEditorMode.textContent = (state.currentMode === 'img2img' ? '图生图' : '文生图') + ' · 正向提示词与负面提示词';
+    const modeLbl = state.currentMode === 'video' ? (state.videoMode === 'img2video' ? '图片生视频' : '文生视频') : (state.currentMode === 'img2img' ? '图生图' : '文生图');
+    el.promptEditorMode.textContent = modeLbl + ' · 正向提示词与负面提示词';
     updatePromptEditorCounts();
     el.promptEditor.classList.add('open');
     document.body.classList.add('prompt-editor-open');
@@ -288,6 +314,7 @@
     el.prompt.value = el.promptEditorText.value;
     el.negative.value = el.promptEditorNegative.value;
     autosize();
+    syncQuickRow();
     closePromptEditor();
     if (andGenerate) setTimeout(() => el.btnGen.click(), 0);
     else toast('✅ 提示词已应用', 'ok');
@@ -304,7 +331,7 @@
   state.hooks.cancelVideoEntry = cancelVideoEntry;
   state.hooks.downloadArchivedVideo = downloadArchivedVideo;
   state.videoWatches = state.videoWatches || new Map();
-  /* 控制台：唯一入口 = 顶栏 ⋯；抽屉内 6 个 tab 与面板共用 goConsole 分发 */
+  /* 控制台：顶栏工作台直开最近抽屉，顶栏导航与抽屉内 6 个 tab 共用 goConsole 分发 */
   function goConsole(name) {
     closeConsole();
     if (name === 'templates') { openTemplates(); return; }
@@ -325,7 +352,11 @@
     const cbtn = $('btnConsole');
     if (cbtn) cbtn.setAttribute('aria-expanded', 'false');
   }
-  if ($('btnConsole')) $('btnConsole').onclick = () => openConsole();
+  if ($('btnConsole')) $('btnConsole').onclick = () => {
+    const anyOpen = Object.values(drawers).some(d => d && d.classList.contains('open'));
+    if (anyOpen) closeDrawers();
+    else goConsole(state.lastDrawerTab || 'params');
+  };
   if ($('consoleSheet')) $('consoleSheet').addEventListener('click', e => {
     if (e.target === $('consoleSheet')) closeConsole();
   });
@@ -356,6 +387,7 @@
       updatePromptEditorCounts();
     }
     autosize();
+    syncQuickRow();
     scheduleAutosave();
     closeDrawers();
     toast('✅ 已套用样板：' + (d.name || ''), 'ok');
@@ -390,6 +422,7 @@
     if (location.protocol === 'file:') return false;
     try {
       const res = await fetch('/api/prompt-list', { cache: 'no-store' });
+      if (res && res.ok) await res.text().catch(() => {});
       return !!res.ok;
     } catch (e) { return false; }
   }
@@ -425,7 +458,8 @@
   if (el.apiProfileOverwrite) el.apiProfileOverwrite.onclick = overwriteApiProfile;
   if (el.apiProfileDelete) el.apiProfileDelete.onclick = deleteApiProfile;
   el.providerPreset.onchange = () => applyPreset(true);
-  el.model.onchange = () => { el.customModel.style.display = el.model.value === '__custom__' ? '' : 'none'; syncImageParamOptions(); };
+  el.model.onchange = () => { el.customModel.style.display = el.model.value === '__custom__' ? '' : 'none'; syncImageParamOptions(); syncQuickRow(); };
+  if (el.customModel) el.customModel.oninput = syncQuickRow;
   el.chatModel.onchange = () => { el.chatCustomModel.style.display = el.chatModel.value === '__custom__' ? '' : 'none'; };
   if (el.videoMode) el.videoMode.onchange = () => { state.videoMode = el.videoMode.value === 'img2video' ? 'img2video' : 'txt2video'; setMode('video'); };
   if (el.videoModel) el.videoModel.onchange = () => { if (el.videoCustomModel) el.videoCustomModel.style.display = el.videoModel.value === '__custom__' ? '' : 'none'; state.videoModel = getSelectedVideoModel(); syncQuickRow(); };
@@ -461,15 +495,32 @@
     };
   }
 
-  /* ================= 模式切换 ================= */
+  /* ================= 模式切换与顶栏快捷入口 ================= */
   document.querySelectorAll('#modeSwitch button').forEach(b => {
     b.onclick = () => setMode(b.dataset.mode);
   });
+  document.querySelectorAll('#videoSubSwitch button').forEach(b => {
+    b.onclick = () => {
+      state.videoMode = b.dataset.vmode === 'img2video' ? 'img2video' : 'txt2video';
+      if (el.videoMode) el.videoMode.value = state.videoMode;
+      setMode('video');
+    };
+  });
+  const topConnBtn = $('btnTopConn');
+  if (topConnBtn) topConnBtn.onclick = () => focusDrawerTarget('settings', el.apiBase);
+  const topQueueBtn = $('btnTopQueue');
+  if (topQueueBtn) topQueueBtn.onclick = () => goConsole('overview');
 
   /* ================= 参考图 ================= */
-  el.refAdd.onclick = () => el.fileInput.click();
+  const openRefFromEmpty = () => {
+    const br = document.querySelector('.action-row .btn-ref');
+    const anchor = (br && br.offsetParent) ? br : ((el.refAdd && el.refAdd.offsetParent) ? el.refAdd : null);
+    toggleDockPopover('ref', anchor);
+  };
+  el.refAdd.onclick = () => toggleDockPopover('ref', el.refAdd);
+  document.querySelectorAll('.btn-ref').forEach(b => { b.onclick = () => toggleDockPopover('ref', b); });
   el.fileInput.onchange = e => { addRefFiles(e.target.files); e.target.value = ''; };
-  if (el.emptyAddRef) el.emptyAddRef.onclick = () => el.fileInput.click();
+  if (el.emptyAddRef) el.emptyAddRef.onclick = openRefFromEmpty;
   if (el.emptyOptimize) el.emptyOptimize.onclick = () => el.btnOptimize.click();
   if (el.emptyParams) el.emptyParams.onclick = () => focusDrawerTarget('params', el.tierTabs);
 
@@ -477,13 +528,16 @@
   el.btnCustomSize.onclick = applyCustomSize;
   el.customSize.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyCustomSize(); } });
 
-  /* ================= 快捷行 ================= */
-  el.qcStatus.onclick = () => focusDrawerTarget('settings', el.apiBase);
-  if (el.qcVideo) el.qcVideo.onclick = () => focusDrawerTarget('params', el.videoPanel);
-  el.qcTier.onclick = () => focusDrawerTarget('params', el.tierTabs);
-  el.qcRatio.onclick = () => focusDrawerTarget('params', el.sizeGrid);
-  el.qcCount.onclick = () => focusDrawerTarget('params', el.count, { focus: true });
-  el.qcNeg.onclick = () => focusDrawerTarget('params', el.negative, { focus: true });
+  /* ================= 快捷行（即点即改 Popover） ================= */
+  const qcInspireBtn = $('qcInspire');
+  if (qcInspireBtn) qcInspireBtn.onclick = e => toggleDockPopover('inspire', e.currentTarget);
+  el.qcStatus.onclick = e => toggleDockPopover('status', e.currentTarget);
+  if (el.qcVideo) el.qcVideo.onclick = e => toggleDockPopover('video', e.currentTarget);
+  el.qcTier.onclick = e => toggleDockPopover('tier', e.currentTarget);
+  el.qcRatio.onclick = e => toggleDockPopover('ratio', e.currentTarget);
+  el.qcCount.onclick = e => toggleDockPopover('count', e.currentTarget);
+  el.qcNeg.onclick = e => toggleDockPopover('neg', e.currentTarget);
+  if (el.negative) el.negative.addEventListener('input', syncQuickRow);
   if (el.imageResolution) el.imageResolution.onchange = () => { state.currentResolution = el.imageResolution.value || ''; syncQuickRow(); };
   el.count.onchange = syncQuickRow;
   el.quality.onchange = () => state.currentQuality = el.quality.value;
@@ -519,10 +573,10 @@
     applyCfg(p);
     toast('✅ 已应用预设「' + name + '」', 'ok');
   };
-  el.btnPresetDel.onclick = () => {
+  el.btnPresetDel.onclick = async () => {
     const name = el.presetSelect.value;
     if (!name) { toast('请先选择一个预设', 'err'); return; }
-    if (!confirm('删除预设「' + name + '」？')) return;
+    if (!(await uiConfirm({ title:'删除参数预设', message:'确定删除预设「' + name + '」？', confirmText:'删除', danger:true }))) return;
     savePresets(loadPresets().filter(p => p.name !== name));
     renderPresetSelect();
     toast('已删除预设「' + name + '」', 'ok');
@@ -748,6 +802,7 @@
       el.negative.value = normalizeGeneratedNegative(dual.negative);
       state.pendingParentArmed = true; // 优化成功回填，血缘才正式生效
       autosize();
+      syncQuickRow();
       closeSheet();
       toast(dual.negative ? '✅ 正向 + 负面提示词已回填' : '✅ 正向提示词已回填', 'ok');
     } catch (err) {
@@ -791,6 +846,21 @@
         if (!ctMenu.contains(e.target) && !fabBtn.contains(e.target)) setMenu(false);
       });
     }
+    document.querySelectorAll('#ctMenu [data-proxy-click]').forEach(btn => {
+      btn.onclick = () => {
+        const target = $(btn.getAttribute('data-proxy-click'));
+        if (target) target.click();
+      };
+    });
+    const linksHudBtn = $('btnCanvasLinks');
+    if (linksHudBtn) linksHudBtn.onclick = () => {
+      if (!el.linkToggle) return;
+      el.linkToggle.checked = !el.linkToggle.checked;
+      el.linkToggle.dispatchEvent(new Event('change'));
+    };
+    if (el.zoomVal) el.zoomVal.onclick = () => {
+      zoomAnimate(1, el.canvas.clientWidth / 2, el.canvas.clientHeight / 2);
+    };
     const locateBtn = $('btnLocate');
     if (locateBtn) locateBtn.onclick = () => {
       if (!goActive()) { goLatest(); toast('当前没有进行中的任务，已定位到最新卡片'); }
@@ -798,8 +868,8 @@
   }
   {
     const stopBtnEl = document.getElementById('btnStopQueued');
-    if (stopBtnEl) stopBtnEl.onclick = () => {
-      if (!confirm('终止所有排队中的任务？\n只影响「尚未开始生成」的任务，已开始生成的会继续完成。')) return;
+    if (stopBtnEl) stopBtnEl.onclick = async () => {
+      if (!(await uiConfirm({ title:'终止排队中的任务', message:'只影响「尚未开始生成」的任务，已开始生成的会继续完成。', confirmText:'确定终止', danger:true }))) return;
       abortQueuedTasks();
     };
   }
@@ -867,6 +937,12 @@
 
 
   /* 画布空白区：pan / 捏合 */
+  el.canvas.addEventListener('scroll', () => {
+    if (el.canvas.scrollLeft || el.canvas.scrollTop) {
+      el.canvas.scrollLeft = 0;
+      el.canvas.scrollTop = 0;
+    }
+  });
   el.canvas.addEventListener('pointerdown', e => {
     if (e.target.closest('.c-card') || e.target.closest('.canvas-tools')) return;
     state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, card: false });
@@ -1013,6 +1089,7 @@
       el.prompt.value = state.libDetail.prompt || '';
       el.negative.value = state.libDetail.negative || '';
       autosize();
+      syncQuickRow();
       closePreview();
       toast(state.libDetail.negative ? '✅ 已回填正向 + 负面提示词' : '✅ 已回填提示词', 'ok');
     }
@@ -1218,10 +1295,10 @@
   el.btnClearCanvas.onclick = clearCanvas;
   el.btnClearByState.onclick = clearByState;
 
-  el.btnClearHist.onclick = () => {
+  el.btnClearHist.onclick = async () => {
     const hist = lsGet(LS_HIST, []);
     if (!hist.length) { toast('素材库已经是空的', 'ok'); return; }
-    if (!confirm('确定清空全部素材库吗？此操作无法撤销。')) return;
+    if (!(await uiConfirm({ title:'清空历史素材库', message:'将清空全部已保存的本地历史素材，此操作无法撤销。', confirmText:'清空素材库', danger:true }))) return;
     hist.forEach(r => { if (r && r.origType === 'idb') idbDel(r.id); });
     localStorage.removeItem(LS_HIST);
     renderLib();
@@ -1236,18 +1313,22 @@
   el.linkToggle.onchange = () => {
     localStorage.setItem('img2img_links_v1', el.linkToggle.checked ? '1' : '0');
     state.linkLayer.style.display = el.linkToggle.checked ? '' : 'none';
+    syncTopbarHud();
   };
 
   /* ================= 键盘与无障碍 ================= */
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      const dlg = $('appDialogModal');
+      if (dlg && dlg.classList.contains('open')) { closeAppDialog(); return; }
+      closeDockPopover();
       closePromptEditor();
       closeDrawers();
       closePreview();
       closeDetail();
       closeNameModal();
       closeSheet();
-      closePaint();
+      if (el.paintWrap && el.paintWrap.classList.contains('open')) closePaint();
       closeCtx();
       if (el.visionPickModal) el.visionPickModal.classList.remove('open');
       { const __cs = document.getElementById('consoleSheet'); if (__cs) __cs.classList.remove('open'); const __cb = document.getElementById('btnConsole'); if (__cb) __cb.setAttribute('aria-expanded', 'false'); }
@@ -1257,6 +1338,7 @@
   /* ================= 初始化 ================= */
   async function init() {
     bindBoot();
+    initStudioDecor();
     const serverOk = await ensureServer();
     if (!serverOk) {
       showBootBlock();
@@ -1268,6 +1350,9 @@
       return;
     }
     hideBootBlock();
+    initDropAndPaste();
+    initPreviewEnhancements();
+    initPaintCursor();
     renderTierTabs();
     renderSizes();
     renderQuickChips();
@@ -1286,6 +1371,7 @@
     bindLiveModelRefresh();
     bindUsageRefresh();
     await maybeRefreshLiveModels(true);
+    syncQuickRow();
     el.prompt.addEventListener('keydown', e => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); el.btnGen.click(); }
     });
@@ -1295,8 +1381,9 @@
     state.taskApi.restored = true;
     scheduleAutosave();
     checkOvershoot(); // 超生成：恢复状态条；若已达标则兜底终止剩余排队
+    syncTopbarHud();
     goLatest(); // 必须在 restoreCanvas 之后定位，避免初始化时把空画布写回 localStorage
-    window.addEventListener('resize', () => { applyView(); rebuildColumns(); });
+    window.addEventListener('resize', () => { applyView(); rebuildColumns(); syncTopbarHud(); });
     if (window.visualViewport) {
       // 软键盘弹出时把底部坞/抽屉/面板抬到键盘上方（--kb-h 注入底部 padding）
       window.visualViewport.addEventListener('resize', () => {

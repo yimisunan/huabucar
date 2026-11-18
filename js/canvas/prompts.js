@@ -85,7 +85,7 @@ const ri = getTaskResult(t);
       const img = document.createElement('img');
       img.src = it.thumbUrl;
       const x = document.createElement('button');
-      x.className = 'vt-x'; x.textContent = '✕';
+      x.type = 'button'; x.className = 'vt-x'; x.innerHTML = ICO.close; x.setAttribute('aria-label', '移除图片');
       x.onclick = ()=>{ state.visionItems.splice(i, 1); renderVisionThumbs(); };
       d.append(img, x);
       el.visionThumbs.appendChild(d);

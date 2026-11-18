@@ -106,6 +106,7 @@
   const click = id => { const n = $(id); if(n) n.click(); };
   const DRAWER_IDS = ['drawerParams','drawerLib','drawerSettings','drawerOverview','drawerTemplates','drawerGallery'];
   const LAYERS = [
+    { ids:['appDialogModal'],  close: ()=> click('appDialogCancel') },
     { ids:['paintWrap'],       close: ()=> click('paintClose') },
     { ids:['promptEditor'],    close: ()=> click('promptEditorClose') },
     { ids:['nameModal'],       close: ()=> click('nameClose') },

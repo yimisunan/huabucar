@@ -1,4 +1,6 @@
 import { $, CARD_W, OV_STATE } from './state.js';
+import { ICO } from './icons.js';
+import { EMPTY_STATE_SVG } from './ui-studio.js';
 import { toast, dataUrlToBlob, getRequestUrl } from './util.js';
 import { getCapabilities, getCapabilitiesForPreset, getImageModelCapabilities } from './settings.js';
 import { getTaskResult } from './paint.js';
@@ -140,7 +142,7 @@ export function renderOverview(){
   if(run || pend || fail){
     sum.classList.add('show');
     sum.innerHTML = '<div class="d-hint">运行中 ' + run + ' · 排队 ' + pend + ' · 失败 ' + fail + '</div>'
-      + '<div class="d-row"><button class="d-btn" id="btnAbortAll">⏹ 全部终止</button><button class="d-btn" id="btnRetryFailed">🔄 恢复全部失败</button></div>';
+      + '<div class="d-row"><button class="d-btn" id="btnAbortAll" type="button">' + ICO.stop + '<span class="lbl">全部终止</span></button><button class="d-btn" id="btnRetryFailed" type="button">' + ICO.retry + '<span class="lbl">恢复全部失败</span></button></div>';
   }else sum.classList.remove('show');
   const filterEl = $('ovFilter');
   filterEl.innerHTML = '';
@@ -158,7 +160,7 @@ export function renderOverview(){
   });
   el.overviewList.innerHTML = '';
   if(!filtered.length){
-    el.overviewList.innerHTML = '<div class="d-hint">' + (entries.length ? '该筛选下暂无卡片' : '画布为空，先生成图片或视频吧。') + '</div>';
+    el.overviewList.innerHTML = '<div class="empty-ov">' + EMPTY_STATE_SVG + '<div>' + (entries.length ? '该筛选下暂无卡片' : '画布为空，先生成图片或视频吧。') + '</div></div>';
   }else{
     filtered.forEach(t=>{
       const row = document.createElement('div');

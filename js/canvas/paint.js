@@ -1,6 +1,7 @@
 import { MAX_PIXELS } from './state.js';
 import { toast, getRequestUrl, localApiProxyHint } from './util.js';
 import { getCapabilities, getSelectedImageModel, getImageModelCapabilities } from './settings.js';
+import { uiConfirm } from './ui-studio.js';
 
 /**
  * 局部修改（蒙版重绘）
@@ -127,11 +128,19 @@ export function openPaintSource(src){
     .finally(()=>{ state.paintBusy = false; });
 }
 
-export function closePaint(force){
+export async function closePaint(force){
+  if(!el || !el.paintWrap || !el.paintWrap.classList.contains('open')) return true;
   if(!force && state.paintStrokes && state.paintStrokes.length){
-    if(!confirm('还有未提交的涂抹，确定关闭？')) return false;
+    if(!(await uiConfirm({
+      title: '关闭局部修改',
+      message: '还有未提交的涂抹，确定丢弃并关闭？',
+      confirmText: '丢弃并关闭',
+      danger: true
+    }))) return false;
   }
   el.paintWrap.classList.remove('open');
+  const pc = document.getElementById('paintCursor');
+  if(pc) pc.style.opacity = '0';
   state.paintOrig = null; state.paintMask = null;
   state.paintStrokes = []; state.paintRedo = [];
   state.paintSource = null; state.paintScale = 1;
