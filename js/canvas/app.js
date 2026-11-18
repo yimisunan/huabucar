@@ -833,14 +833,53 @@
   el.zoomReset.setAttribute('aria-label', '定位进行中任务');
   /* 画布工具 FAB：把 5 个纯图标动作收进一个带文字的菜单 */
   {
-    const fabBtn = $('btnCanvasTools'), ctMenu = $('ctMenu');
+    const fabBtn = $('btnCanvasTools'), ctMenu = $('ctMenu'), toolsEl = $('canvasTools');
     if (fabBtn && ctMenu) {
+      const resetCtMenuLayout = () => {
+        if (toolsEl) toolsEl.classList.remove('menu-open');
+        ctMenu.style.position = '';
+        ctMenu.style.top = '';
+        ctMenu.style.right = '';
+        ctMenu.style.bottom = '';
+        ctMenu.style.maxHeight = '';
+      };
+      const fitCtMenu = () => {
+        if (ctMenu.hidden || !el.canvas) return;
+        resetCtMenuLayout();
+        if (toolsEl) toolsEl.classList.add('menu-open');
+        const cRect = el.canvas.getBoundingClientRect();
+        const fabRect = fabBtn.getBoundingClientRect();
+        const vp = window.visualViewport;
+        const vpTop = vp ? vp.offsetTop : 0;
+        const vpBottom = vp ? (vp.offsetTop + vp.height) : window.innerHeight;
+        const docW = document.documentElement.clientWidth || window.innerWidth;
+        const minTop = Math.max(cRect.top + 8, vpTop + 8);
+        const availAbove = Math.floor((fabRect.top - 8) - minTop);
+        if (availAbove >= 160) {
+          ctMenu.style.maxHeight = Math.min(420, availAbove) + 'px';
+        } else {
+          const topbarBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom || cRect.top;
+          const safeTop = Math.max(vpTop + 8, Math.round(topbarBottom + 8));
+          const maxH = Math.max(100, Math.floor(vpBottom - safeTop - 12));
+          ctMenu.style.position = 'fixed';
+          ctMenu.style.top = safeTop + 'px';
+          ctMenu.style.bottom = 'auto';
+          ctMenu.style.right = Math.max(8, Math.round(docW - fabRect.right)) + 'px';
+          ctMenu.style.maxHeight = Math.min(420, maxH) + 'px';
+        }
+      };
       const setMenu = open => {
         ctMenu.hidden = !open;
         fabBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) requestAnimationFrame(fitCtMenu);
+        else resetCtMenuLayout();
       };
       fabBtn.onclick = e => { e.stopPropagation(); setMenu(ctMenu.hidden); };
-      ctMenu.addEventListener('click', () => setMenu(false));
+      ctMenu.addEventListener('click', e => {
+        if (e.target && e.target.closest && e.target.closest('.ct-item')) setMenu(false);
+      });
+      window.addEventListener('resize', fitCtMenu);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', fitCtMenu);
       document.addEventListener('pointerdown', e => {
         if (ctMenu.hidden) return;
         if (!ctMenu.contains(e.target) && !fabBtn.contains(e.target)) setMenu(false);

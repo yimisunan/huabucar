@@ -263,16 +263,43 @@ export function syncTopbarHud(){
 let activePopover = null;
 let popoverAnchorEl = null;
 
+function resetPopoverLayout(pop){
+  if(!pop) return;
+  pop.style.top = '';
+  pop.style.bottom = '';
+  pop.style.left = '';
+  pop.style.right = '';
+  pop.style.maxHeight = '';
+}
+
 function positionPopover(){
   const pop = document.getElementById('dockPopover');
   const dock = document.querySelector('.dock');
   if(!pop || !dock || pop.hidden) return;
-  if(!popoverAnchorEl){ pop.style.left = ''; pop.style.right = ''; return; }
+  resetPopoverLayout(pop);
   const dRect = dock.getBoundingClientRect();
+  const topbarBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom || 56;
+  const vp = window.visualViewport;
+  const vpTop = vp ? vp.offsetTop : 0;
+  const vpBottom = vp ? (vp.offsetTop + vp.height) : window.innerHeight;
+  const docW = document.documentElement.clientWidth || window.innerWidth;
+  const safeTop = Math.max(vpTop + 8, Math.round(topbarBottom + 8));
+  const spaceAbove = Math.floor((dRect.top - 10) - safeTop);
+  if(spaceAbove >= 160){
+    pop.style.maxHeight = Math.min(460, spaceAbove) + 'px';
+  }else{
+    const maxH = Math.max(110, Math.floor(vpBottom - safeTop - 12));
+    pop.style.top = Math.round(safeTop - dRect.top) + 'px';
+    pop.style.bottom = 'auto';
+    pop.style.maxHeight = Math.min(460, maxH) + 'px';
+  }
+  if(!popoverAnchorEl) return;
   const aRect = popoverAnchorEl.getBoundingClientRect();
   const pW = pop.offsetWidth || 320;
   let left = (aRect.left + aRect.width / 2 - dRect.left) - pW / 2;
-  left = Math.max(8, Math.min(dRect.width - pW - 8, left));
+  const minLeft = Math.round(8 - dRect.left);
+  const maxLeft = Math.round(docW - dRect.left - pW - 8);
+  left = maxLeft >= minLeft ? Math.max(minLeft, Math.min(maxLeft, left)) : minLeft;
   pop.style.left = left + 'px';
   pop.style.right = 'auto';
 }
@@ -282,6 +309,7 @@ export function closeDockPopover(){
   if(!pop) return;
   pop.hidden = true;
   pop.innerHTML = '';
+  resetPopoverLayout(pop);
   document.querySelectorAll('.q-chip.pop-open, .act-btn.pop-open').forEach(b=> b.classList.remove('pop-open'));
   activePopover = null;
   popoverAnchorEl = null;
@@ -834,4 +862,5 @@ export function initStudioDecor(){
   });
 
   window.addEventListener('resize', positionPopover);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', positionPopover);
 }
